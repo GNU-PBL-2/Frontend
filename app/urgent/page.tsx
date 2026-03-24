@@ -1,11 +1,34 @@
 import BottomNav from "@/components/BottomNav";
+import { mockIngredients, type Category } from "@/data/dummydata";
+import { getDaysLeft } from "@/utils/expiryHelpers";
+
+function getCategoryEmoji(category: Category) {
+  switch (category) {
+    case "채소":
+      return "🥬";
+    case "육류":
+      return "🥩";
+    case "유제품":
+      return "🥛";
+    case "기타":
+      return "🍽️";
+    default:
+      return "📦";
+  }
+}
 
 export default function UrgentPage() {
-  const urgentItems = [
-    { name: "두부", count: 1, dday: "D-1", icon: "🥬" },
-    { name: "시금치", count: 1, dday: "D-1", icon: "🥬" },
-    { name: "계란", count: 1, dday: "D-3", icon: "🥬" },
-  ];
+  const urgentItems = mockIngredients
+  .map((item) => {
+    const daysLeft = getDaysLeft(item.purchaseDate, item.category);
+    return {
+      ...item,
+      daysLeft,
+      dday: daysLeft < 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`,
+    };
+  })
+  .filter((item) => item.daysLeft <= 3)
+  .sort((a, b) => a.daysLeft - b.daysLeft);
 
   const getDdayColor = (dday: string) => {
     if (dday === "D-1") return "text-red-500";
@@ -29,12 +52,12 @@ export default function UrgentPage() {
               className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4"
             >
               <div className="w-24 h-24 rounded-md bg-gray-100 flex items-center justify-center text-4xl">
-                {item.icon}
+                {getCategoryEmoji(item.category)}
               </div>
 
               <div className="flex-1">
                 <p className="text-2xl font-bold text-gray-900">
-                  {item.name} {item.count}
+                  {item.name} {item.quantityValue ? `${item.quantityValue}개` : item.quantityValue}
                 </p>
                 <p className={`mt-1 text-2xl font-bold ${getDdayColor(item.dday)}`}>
                   {item.dday}

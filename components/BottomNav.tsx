@@ -8,10 +8,10 @@ export default function BottomNav() {
           <span className="text-xs font-semibold">홈</span>
         </Link>
 
-        <div className="flex flex-col items-center text-gray-400">
+        <Link href="/fridge" className="flex flex-col items-center text-gray-400">
           <span className="text-2xl">❄️</span>
           <span className="text-xs">냉장고</span>
-        </div>
+        </Link>
 
         <div className="flex flex-col items-center text-gray-400">
           <span className="text-2xl">🛒</span>
