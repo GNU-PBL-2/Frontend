@@ -44,6 +44,8 @@ export default function FridgePage() {
 
     const [form, setForm] = useState<IngredientForm>(initialForm);
 
+    const [isEditMode, setIsEditMode] = useState(false);
+
     const filteredItems = useMemo(() => {
         const filtered =
             selectedCategory === "전체"
@@ -78,6 +80,43 @@ export default function FridgePage() {
         setForm(initialForm);
     };
 
+    const quantityOrder: Quantity[] = ["적음", "보통", "많음"];
+
+const increaseItemQuantity = (id: number) => {
+  setItems((prev) =>
+    prev.map((item) => {
+      if (item.id !== id) return item;
+
+      if (item.quantityValue !== undefined) {
+        return { ...item, quantityValue: item.quantityValue + 1 };
+      }
+
+      const currentIndex = quantityOrder.indexOf(item.quantity);
+      const nextIndex = Math.min(currentIndex + 1, quantityOrder.length - 1);
+
+      return { ...item, quantity: quantityOrder[nextIndex] };
+    })
+  );
+};
+
+    const decreaseItemQuantity = (id: number) => {
+    setItems((prev) =>
+        prev.map((item) => {
+        if (item.id !== id) return item;
+
+        if (item.quantityValue !== undefined) {
+            const nextValue = Math.max(1, item.quantityValue - 1);
+            return { ...item, quantityValue: nextValue };
+        }
+
+        const currentIndex = quantityOrder.indexOf(item.quantity);
+        const nextIndex = Math.max(currentIndex - 1, 0);
+
+        return { ...item, quantity: quantityOrder[nextIndex] };
+        })
+    );
+    };
+
     const toggleFavorite = (id: number) => {
         setItems((prev) =>
         prev.map((item) =>
@@ -91,7 +130,12 @@ export default function FridgePage() {
         <div className="w-full max-w-sm bg-white min-h-screen p-4 relative">
             <div className="mt-4 mb-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold">나의 <span className="text-blue-600">냉장고</span></h1>
-            <button className="text-xs text-gray-500">유통기한 빠른순</button>
+            <button
+                onClick={() => setIsEditMode((prev) => !prev)}
+                className="text-sm font-medium text-green-600"
+            >
+                {isEditMode ? "저장하기" : "수정하기"}
+            </button>
             </div>
 
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
@@ -102,10 +146,10 @@ export default function FridgePage() {
                 <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap border ${
-                    active
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "bg-white text-gray-700 border-gray-300"
+                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
+                        active
+                            ? "bg-green-700 text-white border-green-600"
+                            : "bg-gray-100 text-gray-400 border-gray-100"
                     }`}
                 >
                     {category}
@@ -125,6 +169,9 @@ export default function FridgePage() {
                     key={item.id}
                     item={item}
                     onToggleFavorite={toggleFavorite}
+                    isEditMode={isEditMode}
+                    onIncrease={increaseItemQuantity}
+                    onDecrease={decreaseItemQuantity}
                 />
                 ))}
             </div>

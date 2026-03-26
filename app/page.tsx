@@ -41,9 +41,9 @@ export default function Home() {
   const username = "홍길동"
 
   const recipeItems = [
-    {name : "두부조림", picture : ""},
-    {name : "시금치무침", picture : ""},
     {name : "장조림", picture : ""},
+    {name : "두부조림", picture : ""},
+    {name : "계란찜", picture : ""},
   ];
 
   const ingredientsWithDays = mockIngredients.map((item) => {
@@ -55,11 +55,11 @@ export default function Home() {
   };
   });
 
-  const wasteDangerItems = ingredientsWithDays.filter((item) => item.daysLeft === 1);
+  const wasteDangerItems = ingredientsWithDays.filter((item) =>item.daysLeft >= 0 && item.daysLeft <= 1);
   const recommendedItems = ingredientsWithDays.filter(
     (item) => item.daysLeft >= 2 && item.daysLeft <= 5
   );
-  const urgentDisplayItems = ingredientsWithDays.filter((item) => item.daysLeft <= 3).sort(((a, b) => a.daysLeft - b.daysLeft));
+  const urgentDisplayItems = ingredientsWithDays.filter((item) => item.daysLeft <= 3).sort((a, b) => a.daysLeft - b.daysLeft).slice(0,3);
 
   const totalCount = mockIngredients.reduce((sum, item) => sum + getItemCount(item), 0);
   const wasteDangerCount = wasteDangerItems.reduce((sum, item) => sum + getItemCount(item), 0);
