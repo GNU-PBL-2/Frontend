@@ -3,6 +3,7 @@ import Image from "next/image";
 import BottomNav from "@/components/BottomNav"
 import FloatingCameraButton from "@/components/FloatingCameraButton"
 import { mockIngredients, type Category, type Ingredient } from "@/data/dummydata";
+import { generateAlarmItems } from "@/data/alarmUtils";
 
 const shelfLifeMap: Record<Category, number> = {
   채소: 7,
@@ -40,6 +41,8 @@ function getItemCount(item: Ingredient) {
 export default function Home() {
   const username = "홍길동"
 
+  const unreadAlarmCount = generateAlarmItems().filter((item) => !item.isRead).length;
+
   const recipeItems = [
     {name : "장조림", picture : ""},
     {name : "두부조림", picture : ""},
@@ -72,7 +75,15 @@ export default function Home() {
           <h1 className="text-2xl font-bold ml-1">
           {username}님의 <span className="text-green-700 mr-2">냉장고</span>
           </h1>
-          <span className="text-2xl">🔔</span>
+          <Link href="/alarm" className="relative w-10 h-10 flex items-center justify-center">
+            <span className="text-2xl">🔔</span>
+
+            {unreadAlarmCount > 0 && (
+              <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadAlarmCount}
+              </div>
+            )} 
+          </Link>         
         </div>
 
         <div className="mt-6 bg-orange-600 text-white p-4 rounded-md py-8 flex items-center"> {/*폐기 위험 재료 */}
