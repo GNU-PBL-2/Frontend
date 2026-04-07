@@ -19,7 +19,10 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-1/2 w-full max-w-sm -translate-x-1/2 bg-white px-4 py-2 h-20">
       <div className="flex items-center justify-between">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
           
           return (
             <Link
