@@ -168,7 +168,7 @@ export default function FridgeItemCard({
         onTouchMove={handleTouchMove}
         onClick={handleCardTap}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex  justify-between gap-4">
 
           {/* 왼쪽: 재료명 + 수량 바 + 구매일 */}
           <div className="flex-1 min-w-0">
@@ -198,7 +198,20 @@ export default function FridgeItemCard({
                 최근 구매&nbsp;&nbsp;{formatDateKorean(item.purchaseDate)}
               </p>
 
-              {/* 수정 버튼 — 선택 모드에선 숨김 */}
+              
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-end justify-between shrink-0 py-0.5">
+
+            {/* 오른쪽: D-day 배지 */}
+            <div
+            className={`min-w-[58px] h-8 px-3 rounded-xl text-base font-bold flex items-center justify-center shrink-0 ${getDdayPillClass(daysLeft)}`}
+            >
+              {getDdayText(daysLeft)}
+            </div>
+
+            {/* 수정 버튼 — 선택 모드에선 숨김 */}
               {!isSelectMode && (
                 <button
                   onClick={(e) => {
@@ -225,16 +238,8 @@ export default function FridgeItemCard({
                   </svg>
                 </button>
               )}
-            </div>
           </div>
           
-          
-          {/* 오른쪽: D-day 배지 */}
-          <div
-            className={`min-w-[58px] h-8 px-3 rounded-xl text-base font-bold flex items-center justify-center shrink-0 ${getDdayPillClass(daysLeft)}`}
-          >
-            {getDdayText(daysLeft)}
-          </div>
 
         </div>
       </div>
