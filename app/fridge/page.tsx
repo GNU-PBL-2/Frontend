@@ -32,6 +32,9 @@ export default function FridgePage() {
 
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [isSelected, setIsSelected] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   const filteredItems = useMemo(() => {
     const filtered =
       selectedCategory === "전체"
@@ -114,6 +117,35 @@ export default function FridgePage() {
     setEditingItemId(null);
   };
 
+  // ✅ 아이템 롱프레스 (선택 모드 진입)
+  const handleLongPress = (id: number) => {
+    setIsSelected(true);
+    setSelectedIds([id]); // ✅ 첫 번째 아이템 선택
+    console.log("롱프레스된 아이템 ID:", id);
+  };
+  
+  // ✅ 아이템 클릭 (선택 토글)
+  const handleSelect = (id: number) => {
+    setSelectedIds((prev) => 
+        prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+    console.log("선택된 아이템 ID들:", selectedIds);
+  };
+
+  // ✅ 선택 모드에서 벗어나기
+  const handleDelete = (id: number) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+
+    // 만약 삭제한 아이템이 선택된 상태라면 선택 해제
+    setSelectedIds((prev) => prev.filter((itemId) => itemId !== id));
+  };
+
+  // ✅ 선택 모드에서 벗어나기
+  const cancelSelectMode = () => {
+    setIsSelected(false);
+    setSelectedIds([]);
+  };
+
   const quantityOrder: Quantity[] = ["적음", "보통", "많음"];
 
   const increaseItemQuantity = (id: number) => {
@@ -166,12 +198,16 @@ export default function FridgePage() {
           <h1 className="text-2xl font-bold">
             나의 <span className="text-blue-600">냉장고</span>
           </h1>
-          <button
-            onClick={() => setIsEditMode((prev) => !prev)}
-            className="text-sm font-medium text-green-600"
-          >
-            {isEditMode ? "저장하기" : "수정하기"}
-          </button>
+
+          {/* ✅ 선택 모드일 때는 "취소" 버튼, 아닐 때는 "수정하기" 버튼 */}
+          {isSelected && (
+            <button
+                onClick={cancelSelectMode}
+                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+            >
+                선택 취소
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
@@ -200,10 +236,18 @@ export default function FridgePage() {
               key={item.id}
               item={item}
               onToggleFavorite={toggleFavorite}
-              isEditMode={isEditMode}
+              //isEditMode={isEditMode}
               onIncrease={increaseItemQuantity}
               onDecrease={decreaseItemQuantity}
               onEdit={handleOpenEdit} // ✅ 추가
+
+              isSelectedMode={isSelected}
+              isSelected={selectedIds.includes(item.id)}
+              onSelect={handleSelect}
+              onLongPress={handleLongPress}
+              onDelete={handleDelete}
+              onEditPress={handleOpenEdit}
+
             />
           ))}
         </div>
