@@ -2,21 +2,14 @@
 
 import { useMemo, useState } from "react";
 import BottomNav from "@/components/BottomNav";
-import AddIngredient from "@/components/fridge/AddIngredient";
+import AddIngredient from "@/components/fridge/IngredientModal";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
-import { mockIngredients, type Ingredient, type Category, type Quantity } from "@/data/dummydata";
+import { mockIngredients } from "@/data/dummydata";
+import { Ingredient, Category, QuantityType, QuantityStatus } from "@/types/ingredient";
 import { getDaysLeft } from "@/utils/expiryHelpers";
+import { IngredientForm } from "@/components/fridge/IngredientModal";
 
 type FilterCategory = "전체" | "채소" | Category;
-
-type IngredientForm = {
-  name: string;
-  purchaseDate: string;
-  category: Category;
-  quantity: Quantity;
-  quantityValue: string;
-  favorite: boolean;
-};
 
 const categories: FilterCategory[] = ["전체", "채소", "육류", "유제품", "기타"];
 
