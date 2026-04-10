@@ -1,23 +1,14 @@
-export type Category = "채소" | "육류" | "유제품" | "기타";
-export type Quantity = "적음" | "보통" | "많음";
-
-export type Ingredient = {
-  id: number;
-  name: string;
-  category: Category;
-  purchaseDate: string;
-  quantity: Quantity;
-  quantityValue?: number;
-  favorite: boolean;
-};
+import { Ingredient } from "@/types/ingredient";
 
 export const mockIngredients: Ingredient[] = [
   {
     id: 1,
     name: "두부",
     category: "기타",
-    purchaseDate: "2026-03-21",
-    quantity: "보통",
+    purchaseDate: "2026-04-01",
+    expiryDate: "2026-04-14",
+    quantityType: "number",
+    quantityStatus: "보통",
     quantityValue: 2,
     favorite: false,
   },
@@ -25,16 +16,20 @@ export const mockIngredients: Ingredient[] = [
     id: 2,
     name: "시금치",
     category: "채소",
-    purchaseDate: "2026-03-23",
-    quantity: "적음",
+    purchaseDate: "2026-04-08",
+    expiryDate: "2026-04-12",  // D-2, 폐기임박
+    quantityType: "status",
+    quantityStatus: "적음",
     favorite: false,
   },
   {
     id: 3,
     name: "계란",
     category: "유제품",
-    purchaseDate: "2026-03-21",
-    quantity: "보통",
+    purchaseDate: "2026-04-01",
+    expiryDate: "2026-04-20",
+    quantityType: "number",
+    quantityStatus: "보통",
     quantityValue: 5,
     favorite: false,
   },
@@ -42,8 +37,10 @@ export const mockIngredients: Ingredient[] = [
     id: 4,
     name: "양파",
     category: "채소",
-    purchaseDate: "2026-03-22",
-    quantity: "많음",
+    purchaseDate: "2026-04-02",
+    expiryDate: "2026-04-15",
+    quantityType: "number",
+    quantityStatus: "많음",
     quantityValue: 3,
     favorite: false,
   },
@@ -51,24 +48,30 @@ export const mockIngredients: Ingredient[] = [
     id: 5,
     name: "우유",
     category: "유제품",
-    purchaseDate: "2026-03-22",
-    quantity: "적음",
+    purchaseDate: "2026-04-02",
+    expiryDate: "2026-04-13",  // D-3, 폐기임박 경계
+    quantityType: "status",
+    quantityStatus: "적음",
     favorite: false,
   },
   {
     id: 6,
     name: "소고기",
     category: "육류",
-    purchaseDate: "2026-03-22",
-    quantity: "적음",
+    purchaseDate: "2026-04-02",
+    expiryDate: "2026-04-16",  // D-6, 소비권장
+    quantityType: "status",
+    quantityStatus: "적음",
     favorite: true,
   },
   {
     id: 7,
     name: "당근",
     category: "채소",
-    purchaseDate: "2026-03-21",
-    quantity: "보통",
+    purchaseDate: "2026-04-01",
+    expiryDate: "2026-04-30",
+    quantityType: "number",
+    quantityStatus: "보통",
     quantityValue: 2,
     favorite: false,
   },
