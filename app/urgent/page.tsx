@@ -85,7 +85,9 @@ export default function UrgentPage() {
                     {item.name}
                   </p>
                   <p className="shrink-0 text-base font-extrabold text-gray-950">
-                    {item.quantityValue ?? 1}개
+                    {item.quantityValue !== undefined
+                      ? `${item.quantityValue}개`
+                      : item.quantity}
                   </p>
                   <span
                     className={`ml-auto rounded-md px-2.5 py-1 text-sm font-bold leading-none ${getDdayBadgeClass(
