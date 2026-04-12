@@ -241,6 +241,11 @@ export default function FridgePage() {
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveItem}
           onChange={setForm}
+          onDelete={() => {
+            if (editingItemId !== null) {
+              handleDelete(editingItemId);
+            }
+          }}
         />
 
         <BottomNav />
