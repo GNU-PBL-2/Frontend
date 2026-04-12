@@ -207,12 +207,29 @@ export default function FridgePage() {
         </div>
 
         {/* ✅ 추가 버튼 */}
-        <button
-          onClick={handleOpenAdd}
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 ml-[140px] w-14 h-14 rounded-full bg-gray-200 text-3xl"
-        >
-          +
-        </button>
+        {!isSelectMode && (
+          <button
+            onClick={handleOpenAdd}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 ml-[140px] w-14 h-14 rounded-full bg-gray-200 text-3xl"
+          >
+            +
+          </button>
+        )}
+        
+        {/* ✅ 선택 모드에서 레시피 검색 버튼 */}
+        {isSelectMode && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-50">
+            <div className="bg-green-700 text-white p-4 rounded-2xl flex justify-between items-center shadow-2xl">
+              <span className="text-sm font-medium">{selectedIds.length}개의 재료로 레시피 검색하기</span>
+              <button
+                onClick={cancelSelectMode}
+                className="text-white/70 text-sm"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ✅ 모달 */}
         <AddIngredient
