@@ -2,7 +2,24 @@ import BottomNav from "@/components/BottomNav";
 import { mockIngredients, type Category } from "@/data/dummydata";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 
-function getCategoryEmoji(category: Category) {
+function getIngredientEmoji(name: string, category: Category) {
+  switch (name) {
+    case "소고기":
+      return "🥩";
+    case "두부":
+      return "◻️";
+    case "계란":
+      return "🥚";
+    case "당근":
+      return "🥕";
+    case "양파":
+      return "🧅";
+    case "우유":
+      return "🥛";
+    case "시금치":
+      return "🥬";
+  }
+
   switch (category) {
     case "채소":
       return "🥬";
@@ -15,6 +32,13 @@ function getCategoryEmoji(category: Category) {
     default:
       return "📦";
   }
+}
+
+function formatPurchaseDate(dateString: string) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 구매`;
 }
 
 export default function UrgentPage() {
@@ -30,48 +54,60 @@ export default function UrgentPage() {
   .filter((item) => item.daysLeft <= 3)
   .sort((a, b) => a.daysLeft - b.daysLeft);
 
-  const getDdayColor = (dday: string) => {
-    if (dday === "D-1") return "text-red-500";
-    if (dday === "D-3") return "text-orange-400";
-    return "text-gray-500";
+  const getDdayBadgeClass = (daysLeft: number) => {
+    if (daysLeft <= 1) return "bg-red-500 text-white";
+    if (daysLeft <= 3) return "bg-orange-400 text-white";
+    return "bg-gray-500 text-white";
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white min-h-screen p-4">
-        <div className="mt-6 mb-6">
-          <h1 className="text-2xl font-bold ml-1">
+    <div className="bg-gray-50 min-h-screen flex justify-center">
+      <div className="w-full max-w-sm bg-white min-h-screen px-4 pt-8 pb-28">
+        <div className="mb-10">
+          <h1 className="text-xl font-extrabold tracking-tight text-gray-950">
             유통기한 <span className="text-red-500">임박 재료</span>
           </h1>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {urgentItems.map((item) => (
             <div
-              key={item.name}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4"
+              key={item.id}
+              className="flex items-center gap-4 rounded-md border border-gray-300 bg-white p-2.5 shadow-sm"
             >
-              <div className="w-24 h-24 rounded-md bg-gray-100 flex items-center justify-center text-4xl">
-                {getCategoryEmoji(item.category)}
+              <div className="h-16 w-24 shrink-0 rounded-md border border-gray-300 bg-gray-50 flex items-center justify-center text-4xl">
+                {getIngredientEmoji(item.name, item.category)}
               </div>
 
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-gray-900">
-                  {item.name} {item.quantityValue ? `${item.quantityValue}개` : item.quantityValue}
-                </p>
-                <p className={`mt-1 text-2xl font-bold ${getDdayColor(item.dday)}`}>
-                  {item.dday}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                  <p className="truncate text-base font-extrabold text-gray-950">
+                    {item.name}
+                  </p>
+                  <p className="shrink-0 text-base font-extrabold text-gray-950">
+                    {item.quantityValue ?? 1}개
+                  </p>
+                  <span
+                    className={`ml-auto rounded-md px-2.5 py-1 text-sm font-bold leading-none ${getDdayBadgeClass(
+                      item.daysLeft
+                    )}`}
+                  >
+                    {item.dday}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  {formatPurchaseDate(item.purchaseDate)}
                 </p>
               </div>
             </div>
           ))}
         </div>
 
-        <button className="w-full mt-6 bg-green-600 text-white font-bold text-xl rounded-xl py-4 shadow-sm">
+        <button className="mt-10 w-full rounded-md border border-gray-300 bg-white py-3 text-base font-bold text-gray-900 shadow-sm">
           활용 가능한 레시피 확인하기
         </button>
 
-        <div className="h-24" />
+        <div className="h-5" />
       </div>
 
       <BottomNav />
