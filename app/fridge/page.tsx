@@ -5,7 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import AddIngredient, { IngredientForm } from "@/components/fridge/IngredientModal";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
 import { mockIngredients } from "@/data/dummydata";
-import { Ingredient, Category, Quantity } from "@/types/ingredient";
+import { Ingredient, Category } from "@/types/ingredient";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 
 type FilterCategory = "전체" | "채소" | Category;
@@ -17,7 +17,7 @@ const INITIAL_FORM: IngredientForm = {
   purchaseDate: "",
   expiryDate: "",
   category: "채소",
-  quantity: "보통",
+  quantityStatus: "보통",
   quantityType: "status",
   quantityValue: "",
   unit: "개",
@@ -71,7 +71,6 @@ export default function FridgePage() {
       category: item.category,
       quantityType: item.quantityType ?? "status",
       quantityStatus: item.quantityStatus ?? "보통",
-      quantity: item.quantity,
       quantityValue: item.quantityValue ? String(item.quantityValue) : "",
       unit: "개",
       customUnit: "",
