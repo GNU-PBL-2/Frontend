@@ -83,22 +83,32 @@ export default function FridgePage() {
 
   // ✅ 저장 (추가 + 수정 통합)
   const handleSaveItem = () => {
-    if (!form.name.trim() || !form.purchaseDate) {
-      alert("재료명과 구매일자를 입력해 주세요.");
+    if (!form.name.trim() || !form.purchaseDate || !form.expiryDate) {
+      alert("재료명과 구매일자, 유통기한을 입력해 주세요.");
       return;
     }
+
+    if (form.expiryDate < form.purchaseDate) {
+      alert("유통기한은 구매일자 이후로 설정해야 합니다.");
+      return;
+    }
+
+    const commonData = {
+      name: form.name.trim(),
+      purchaseDate: form.purchaseDate,
+      expiryDate: form.expiryDate || "",
+      category: form.category,
+      quantityType: form.quantityType,
+      quantityStatus: form.quantityStatus,
+      quantityValue : form.quantityType === "number" && form.quantityValue ? Number(form.quantityValue) : undefined,
+      favorite: form.favorite,
+    };
 
     if (modalMode === "add") {
       const newItem: Ingredient = {
         id: Date.now(),
-        name: form.name.trim(),
-        purchaseDate: form.purchaseDate,
-        category: form.category,
-        quantity: form.quantity,
-        quantityValue: form.quantityValue ? Number(form.quantityValue) : undefined,
-        favorite: form.favorite,
+        ...commonData
       };
-
       setItems((prev) => [newItem, ...prev]);
     } else if (modalMode === "edit" && editingItemId !== null) {
       setItems((prev) =>
@@ -106,14 +116,7 @@ export default function FridgePage() {
           item.id === editingItemId
             ? {
                 ...item,
-                name: form.name.trim(),
-                purchaseDate: form.purchaseDate,
-                category: form.category,
-                quantity: form.quantity,
-                quantityValue: form.quantityValue
-                  ? Number(form.quantityValue)
-                  : undefined,
-                favorite: form.favorite,
+                ...commonData
               }
             : item
         )
@@ -135,7 +138,6 @@ export default function FridgePage() {
     setSelectedIds((prev) => 
         prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
     );
-    console.log("선택된 아이템 ID들:", selectedIds);
   };
 
   // ✅ 선택 모드에서 벗어나기
@@ -196,7 +198,7 @@ export default function FridgePage() {
             <FridgeItemCard
               key={item.id}
               item={item}
-              isSelectedMode={isSelectMode}
+              isSelectMode={isSelectMode}
               isSelected={selectedIds.includes(item.id)}
               onSelect={handleSelect}
               onLongPress={handleLongPress}
