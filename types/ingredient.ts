@@ -8,6 +8,10 @@ export type FridgeStatus = "NONE" | "ENOUGH" | "LOW" | "EXPIRING" | "EXPIRED"; /
 
 export type SortType = "유통기한순" | "구매일순" | "이름순";
 
+export type IngredientFormData = Omit<Ingredient, "id" | "fridgeStatus"> & {
+  unit? : string; // 수량 단위 (예: "g", "개") - quantityType이 'number'일 때 사용
+}
+
 export type Ingredient = {
   id: number;
   name: string;
@@ -20,6 +24,3 @@ export type Ingredient = {
   favorite: boolean;
   fridgeStatus?: FridgeStatus; // 백엔드 연동 후 채워질 필드
 };
-
-// 재료 추가 팝업 폼 전용 타입
-export type IngredientFormData = Omit<Ingredient, "id" | "fridgeStatus">;

@@ -47,7 +47,7 @@ export default function IngredientModal({
         </div>
 
         <div className="space-y-3">
-          {/* ... 기존 input 요소들 동일 (생략) ... */}
+          
           <input
             type="text"
             placeholder="재료명"
@@ -55,7 +55,57 @@ export default function IngredientModal({
             onChange={(e) => onChange({ ...form, name: e.target.value })}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
           />
-          {/* ... 나머지 select, input 모두 그대로 유지 ... */}
+          
+
+          {/* 👈 날짜 입력 필드 */}
+          <input
+            type="date"
+            value={form.purchaseDate}
+            onChange={(e) => onChange({ ...form, purchaseDate: e.target.value })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
+          />
+
+          {/* 👈 카테고리 선택 필드 */}
+          <select
+            value={form.category}
+            onChange={(e) => onChange({ ...form, category: e.target.value as Category })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
+          >
+            <option value="채소">채소</option>
+            <option value="육류">육류</option>
+            <option value="유제품">유제품</option>
+            <option value="기타">기타</option>
+          </select>
+
+          {/* 👈 수량 선택 필드 */}
+          <select
+            value={form.quantity}
+            onChange={(e) => onChange({ ...form, quantity: e.target.value as Quantity })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
+          >
+            <option value="적음">적음</option>
+            <option value="보통">보통</option>
+            <option value="많음">많음</option>
+          </select>
+          {/* 👈 수량 값 입력 필드 */}
+          <input
+            type="text"
+            placeholder="수량"
+            value={form.quantityValue}
+            onChange={(e) => onChange({ ...form, quantityValue: e.target.value })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none"
+          />
+
+          {/* 👈 즐겨찾기 토글 버튼 */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.favorite}
+              onChange={(e) => onChange({ ...form, favorite: e.target.checked })}
+              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+            />
+            <span className="text-sm">즐겨찾기</span>
+          </label>
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
