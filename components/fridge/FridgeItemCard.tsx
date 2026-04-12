@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Ingredient } from "@/types/ingredient";
+import { getDaysLeft } from "@/utils/expiryHelpers";
 
 // ── 헬퍼 함수들 ─────────────────────────────────────────
 
@@ -9,14 +10,6 @@ function formatDateKorean(dateString: string) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "";
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-}
-
-function getDaysLeft(expiryDate: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expiry = new Date(expiryDate);
-  expiry.setHours(0, 0, 0, 0);
-  return Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function getDdayText(daysLeft: number) {

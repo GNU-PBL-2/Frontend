@@ -15,9 +15,13 @@ const categories: FilterCategory[] = ["전체", "채소", "육류", "유제품",
 const INITIAL_FORM: IngredientForm = {
   name: "",
   purchaseDate: "",
+  expiryDate: "",
   category: "채소",
   quantity: "보통",
+  quantityType: "status",
   quantityValue: "",
+  unit: "개",
+  customUnit: "",
   favorite: false,
 };
 
@@ -30,10 +34,9 @@ export default function FridgePage() {
   const [items, setItems] = useState<Ingredient[]>(mockIngredients);
   const [form, setForm] = useState<IngredientForm>(INITIAL_FORM);
 
-  const [isEditMode, setIsEditMode] = useState(false);
 
-  const [isSelected, setIsSelected] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const isSelectMode = selectedIds.length > 0;
 
   const filteredItems = useMemo(() => {
     const filtered =
@@ -43,8 +46,8 @@ export default function FridgePage() {
 
     return [...filtered].sort(
       (a, b) =>
-        getDaysLeft(a.purchaseDate, a.category) -
-        getDaysLeft(b.purchaseDate, b.category)
+        getDaysLeft(a.expiryDate) -
+        getDaysLeft(b.expiryDate)
     );
   }, [items, selectedCategory]);
 
@@ -64,9 +67,14 @@ export default function FridgePage() {
     setForm({
       name: item.name,
       purchaseDate: item.purchaseDate,
+      expiryDate: item.expiryDate ?? "",
       category: item.category,
+      quantityType: item.quantityType ?? "status",
+      quantityStatus: item.quantityStatus ?? "보통",
       quantity: item.quantity,
       quantityValue: item.quantityValue ? String(item.quantityValue) : "",
+      unit: "개",
+      customUnit: "",
       favorite: item.favorite,
     });
 
@@ -119,9 +127,7 @@ export default function FridgePage() {
 
   // ✅ 아이템 롱프레스 (선택 모드 진입)
   const handleLongPress = (id: number) => {
-    setIsSelected(true);
-    setSelectedIds([id]); // ✅ 첫 번째 아이템 선택
-    console.log("롱프레스된 아이템 ID:", id);
+    setSelectedIds([id]);
   };
   
   // ✅ 아이템 클릭 (선택 토글)
@@ -142,54 +148,9 @@ export default function FridgePage() {
 
   // ✅ 선택 모드에서 벗어나기
   const cancelSelectMode = () => {
-    setIsSelected(false);
     setSelectedIds([]);
   };
 
-  const quantityOrder: Quantity[] = ["적음", "보통", "많음"];
-
-  const increaseItemQuantity = (id: number) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-
-        if (item.quantityValue !== undefined) {
-          return { ...item, quantityValue: item.quantityValue + 1 };
-        }
-
-        const currentIndex = quantityOrder.indexOf(item.quantity);
-        const nextIndex = Math.min(currentIndex + 1, quantityOrder.length - 1);
-
-        return { ...item, quantity: quantityOrder[nextIndex] };
-      })
-    );
-  };
-
-  const decreaseItemQuantity = (id: number) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-
-        if (item.quantityValue !== undefined) {
-          const nextValue = Math.max(1, item.quantityValue - 1);
-          return { ...item, quantityValue: nextValue };
-        }
-
-        const currentIndex = quantityOrder.indexOf(item.quantity);
-        const nextIndex = Math.max(currentIndex - 1, 0);
-
-        return { ...item, quantity: quantityOrder[nextIndex] };
-      })
-    );
-  };
-
-  const toggleFavorite = (id: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, favorite: !item.favorite } : item
-      )
-    );
-  };
 
   return (
     <div className="bg-gray-100 min-h-screen flex justify-center">
@@ -200,7 +161,7 @@ export default function FridgePage() {
           </h1>
 
           {/* ✅ 선택 모드일 때는 "취소" 버튼, 아닐 때는 "수정하기" 버튼 */}
-          {isSelected && (
+          {isSelectMode && (
             <button
                 onClick={cancelSelectMode}
                 className="text-sm font-medium text-gray-500 hover:text-gray-800"
@@ -235,20 +196,13 @@ export default function FridgePage() {
             <FridgeItemCard
               key={item.id}
               item={item}
-              onToggleFavorite={toggleFavorite}
-              //isEditMode={isEditMode}
-              onIncrease={increaseItemQuantity}
-              onDecrease={decreaseItemQuantity}
-              onEdit={handleOpenEdit} // ✅ 추가
-
-              isSelectedMode={isSelected}
+              isSelectedMode={isSelectMode}
               isSelected={selectedIds.includes(item.id)}
               onSelect={handleSelect}
               onLongPress={handleLongPress}
               onDelete={handleDelete}
               onEditPress={handleOpenEdit}
-
-            />
+             />
           ))}
         </div>
 
