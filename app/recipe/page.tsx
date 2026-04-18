@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { mockRecipes, getExpiringCount, getIsCookable } from "@/data/recipeData";
 import { Recipe, RecipeFilterType } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
+import BottomNav from "@/components/BottomNav";
 
 const FILTERS: RecipeFilterType[] = ["임박우선", "전체", "조리가능", "즐겨찾기"];
 
@@ -125,6 +126,8 @@ export default function RecipePage() {
             ))
           )}
         </div>
+
+        <BottomNav /> {/*하단 네비게이션바*/}
       </div>
     </div>
   );
