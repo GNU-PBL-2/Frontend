@@ -1,25 +1,22 @@
-import type { Category } from "@/data/dummydata";
+import type { Category } from "@/types/ingredient";
 
-export const shelfLifeMap: Record<Category, number> = {
-  채소: 7,
-  육류: 5,
-  유제품: 7,
-  기타: 7,
-};
-
-export function getExpiryDate(purchaseDate: string, category: Category) {
-  const date = new Date(purchaseDate);
-  date.setDate(date.getDate() + shelfLifeMap[category]);
-  return date;
-}
-
-export function getDaysLeft(purchaseDate: string, category: Category) {
+// expiryDate(유통기한)를 직접 받아서 D-day 계산
+export function getDaysLeft(expiryDate: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const expiry = getExpiryDate(purchaseDate, category);
+  const expiry = new Date(expiryDate);
   expiry.setHours(0, 0, 0, 0);
 
   const diff = expiry.getTime() - today.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+// 유통기한 상태 반환 (D-day 기준)
+export function getExpiryStatus(expiryDate: string): "expired" | "danger" | "warning" | "safe" {
+  const daysLeft = getDaysLeft(expiryDate);
+  if (daysLeft < 0) return "expired";   // 유통기한 초과
+  if (daysLeft <= 3) return "danger";   // 폐기임박 (D-3 이하)
+  if (daysLeft <= 7) return "warning";  // 소비권장 (D-7 이하)
+  return "safe";
 }
