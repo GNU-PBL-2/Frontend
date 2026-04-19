@@ -14,6 +14,17 @@ export default function RecipePage() {
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // 즐겨찾기 상태 관리 (초기값은 mockRecipes에서 favorite이 true인 것들의 id 배열)
+  const [favoriteIds, setFavoriteIds] = useState<number[]>(
+    mockRecipes.filter((r) => r.favorite).map((r) => r.id)
+  );
+
+  function handleToggleFavorite(id: number) {
+    setFavoriteIds((prev) =>
+      prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
+    );
+  }
+
   // 필터 + 검색 적용
   const filteredRecipes = useMemo(() => {
     let result = [...mockRecipes];
@@ -38,7 +49,8 @@ export default function RecipePage() {
         result = result.filter((r) => getIsCookable(r));
         break;
       case "즐겨찾기":
-        result = result.filter((r) => r.favorite);
+        //result = result.filter((r) => r.favorite);
+        result = result.filter((r) => favoriteIds.includes(r.id));
         break;
       case "전체":
       default:
@@ -46,10 +58,11 @@ export default function RecipePage() {
     }
 
     return result;
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchQuery, favoriteIds]);
 
   function handleRecipeClick(recipe: Recipe) {
-    router.push(`/recipe/${recipe.id}`);
+    const isFav = favoriteIds.includes(recipe.id);
+    router.push(`/recipe/${recipe.id}?favorite=${isFav}`); // 레시피 상세 페이지로 이동 (favorite 상태 전달)
   }
 
   return (
@@ -121,6 +134,8 @@ export default function RecipePage() {
                 recipe={recipe}
                 expiringCount={getExpiringCount(recipe)}
                 isCookable={getIsCookable(recipe)}
+                isFavorite={favoriteIds.includes(recipe.id)}
+                onToggleFavorite={handleToggleFavorite}
                 onStart={() => handleRecipeClick(recipe)}
               />
             ))
