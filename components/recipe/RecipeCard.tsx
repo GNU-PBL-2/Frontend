@@ -49,7 +49,7 @@ export default function RecipeCard({
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
 
         {/* 요리 이미지 */}
-        <div className="relative w-full h-44">
+        <div className="relative w-full h-40">
           <Image
             src={recipe.thumbnailUrl}
             alt={recipe.title}
