@@ -77,33 +77,45 @@ export default function RecipeCard({
 
         {/* 카드 하단 정보 */}
         <div className="px-4 pt-3 pb-4">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-base font-bold text-gray-900">{recipe.title}</h3>
-            {/* 조리가능 칩 — 가능할 때만 */}
+          {/* 1. 제목 영역: 길어지면 ... 처리 */}
+          <div className="mb-2">
+            <h3 className="text-lg font-bold text-gray-900 truncate" title={recipe.title}>
+              {recipe.title}
+            </h3>
+          </div>
+
+          {/* 2. 정보 영역: 모든 요소를 한 줄로 배치 */}
+          <div className="flex items-center gap-2 text-xs font-medium text-gray-500 whitespace-nowrap overflow-hidden">
+            {/* 조리가능 칩 */}
             {isCookable && (
-              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+              <span className="shrink-0 bg-green-50 text-green-600 font-bold px-1.5 py-0.5 rounded border border-green-100">
                 조리가능
               </span>
             )}
-          </div>
 
-          {/* 분류 + 소요시간 */}
-          <div className="flex items-center gap-3 text-sm text-gray-400 mb-3">
-            <span>{recipe.categoryName}</span>
-            <span className="flex items-center gap-1">
-              🕐 {recipe.cookTimeMin}분
+            {/* 분류 */}
+            <span className="shrink-0">{recipe.categoryName}</span>
+
+            {/* 구분선 */}
+            <span className="shrink-0 w-px h-2.5 bg-gray-200" />
+
+            {/* 소요시간 */}
+            <span className="flex items-center gap-0.5 shrink-0">
+              <span className="text-sm">🕐</span>
+              {recipe.cookTimeMin}분
             </span>
           </div>
+        </div>
 
           {/* 요리 시작 버튼 */}
           <button
             onClick={onStart}
-            className="w-full py-3 rounded-xl bg-green-700 text-white text-sm font-bold"
+            className="w-full py-3 rounded-b-xl bg-green-700 text-white text-sm font-bold"
           >
             요리 시작 →
           </button>
         </div>
-      </div>
+            
 
       {/* 토스트 메시지 */}
       <Toast message={toastMessage} visible={toastVisible} />
