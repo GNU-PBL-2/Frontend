@@ -10,13 +10,23 @@ type ToastProps = {
 export default function Toast({ message, visible }: ToastProps) {
   const [show, setShow] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      setShow(true);
-      const timer = setTimeout(() => setShow(false), 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [visible, message]);
+    useEffect(() => {
+//     if (visible) {
+//       setShow(true);
+//       const timer = setTimeout(() => setShow(false), 2500);
+//       return () => clearTimeout(timer);
+//     }
+
+        if (!visible) {
+        setShow(false);
+        return;
+        }
+        setShow(true);
+        const timer = setTimeout(() => setShow(false), 2500);
+        return () => clearTimeout(timer);
+        
+    }, [visible, message]);
+    
 
   if (!show) return null;
 
