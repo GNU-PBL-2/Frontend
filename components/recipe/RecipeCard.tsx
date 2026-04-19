@@ -11,26 +11,28 @@ type RecipeCardProps = {
   expiringCount: number;
   isCookable: boolean;
   onStart: () => void;
-  ontoggleFavorite?: (id: number) => void; // 즐겨찾기 토글 함수 (선택적)
+  onToggleFavorite?: (id: number) => void; // 즐겨찾기 토글 핸들러
+  isFavorite?: boolean; // 즐겨찾기 상태
 };
 
 export default function RecipeCard({
   recipe,
   expiringCount,
   isCookable,
+  isFavorite,
+  onToggleFavorite,
   onStart,
-  ontoggleFavorite,
 }: RecipeCardProps) {
 
   {/* 즐겨찾기 상태 관리 */}
-  const [isFavorite, setIsFavorite] = useState(recipe.favorite);
+  // const [isFavorite, setIsFavorite] = useState(recipe.favorite); //부모 컴포넌트에서 상태 관리로 변경
   const [toastMessage, setToastMessage] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
 
   function handleToggleFavorite() {
     const next = !isFavorite;
-    setIsFavorite(next);
-    ontoggleFavorite?.(recipe.id);
+    // setIsFavorite(next);
+    onToggleFavorite?.(recipe.id);
 
     setToastMessage(
       next 
