@@ -1,4 +1,50 @@
 import { Recipe } from "@/types/recipe";
+import { Ingredient } from "@/types/ingredient";
+import { calcIngredientFridgeStatus } from "@/utils/recipeHelpers";
+
+
+
+// 임박 재료(EXPIRING) 사용 개수 계산
+// export function getExpiringCount(recipe: Recipe): number {
+//   return recipe.ingredients.filter(
+//     (ing) => ing.fridgeStatus === "EXPIRING"
+//   ).length;
+// }
+
+// // 냉장고 재료로 바로 조리 가능한지 판단
+// // NONE인 재료가 없고 isSubstitutable이 아닌 재료가 모두 있어야 함
+// export function getIsCookable(recipe: Recipe): boolean {
+//   return recipe.ingredients
+//     .filter((ing) => !ing.isSubstitutable)
+//     .every((ing) => ing.fridgeStatus !== "NONE" && ing.fridgeStatus !== "EXPIRED");
+// }
+
+export function getExpiringCount(
+  recipe: Recipe,
+  fridgeItems?: Ingredient[]
+): number {
+  const ingredients = fridgeItems
+    ? calcIngredientFridgeStatus(recipe.ingredients, fridgeItems)
+    : recipe.ingredients;
+
+  return ingredients.filter((ing) => ing.fridgeStatus === "EXPIRING").length;
+}
+
+// 연동된 재료 기준 조리 가능 여부 계산
+export function getIsCookable(
+  recipe: Recipe,
+  fridgeItems?: Ingredient[]
+): boolean {
+  const ingredients = fridgeItems
+    ? calcIngredientFridgeStatus(recipe.ingredients, fridgeItems)
+    : recipe.ingredients;
+
+  return ingredients
+    .filter((ing) => !ing.isSubstitutable)
+    .every(
+      (ing) => ing.fridgeStatus !== "NONE" && ing.fridgeStatus !== "EXPIRED"
+    );
+}
 
 export const mockRecipes: Recipe[] = [
   {
@@ -40,7 +86,7 @@ export const mockRecipes: Recipe[] = [
         amount: "1",
         unit: "대",
         isSubstitutable: true,
-        fridgeStatus: "LOW",
+        fridgeStatus: "NONE",
       },
     ],
     steps: [
@@ -248,17 +294,3 @@ export const mockRecipes: Recipe[] = [
   },
 ];
 
-// 임박 재료(EXPIRING) 사용 개수 계산
-export function getExpiringCount(recipe: Recipe): number {
-  return recipe.ingredients.filter(
-    (ing) => ing.fridgeStatus === "EXPIRING"
-  ).length;
-}
-
-// 냉장고 재료로 바로 조리 가능한지 판단
-// NONE인 재료가 없고 isSubstitutable이 아닌 재료가 모두 있어야 함
-export function getIsCookable(recipe: Recipe): boolean {
-  return recipe.ingredients
-    .filter((ing) => !ing.isSubstitutable)
-    .every((ing) => ing.fridgeStatus !== "NONE" && ing.fridgeStatus !== "EXPIRED");
-}
