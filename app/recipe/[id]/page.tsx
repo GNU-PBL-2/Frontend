@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { mockRecipes, getExpiringCount, getIsCookable } from "@/data/recipeData";
@@ -17,9 +17,13 @@ export default function RecipeDetailPage() {
 
   const recipe = mockRecipes.find((r) => r.id === Number(id));
 
-  const [isFavorite, setIsFavorite] = useState(recipe?.favorite ?? false);
-  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
+  const searchParams = useSearchParams();
+  const initialFavorite = searchParams.get("favorite") === "true";
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+// 냉장고 재료 기준으로 레시피 재료의 fridgeStatus 동적 계산된 재료 목록
+//todo - 백엔드 연동 전 Zustand 등으로 상태 관리할 때는 fridgeItems 상태를 전역으로 관리하면서 여기서는 useMemo로 계산된 connectedIngredients만 사용하도록 리팩토링 필요
 
   // 냉장고 재료 기준으로 레시피 재료의 fridgeStatus 동적 계산
   const connectedIngredients = useMemo(() => {
