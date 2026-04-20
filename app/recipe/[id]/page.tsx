@@ -1,9 +1,11 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { mockRecipes, getExpiringCount, getIsCookable } from "@/data/recipeData";
+import { mockIngredients } from "@/data/dummydata";
+import { calcIngredientFridgeStatus } from "@/utils/recipeHelpers";
 import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
 import RecipeStepList from "@/components/recipe/RecipeStepList";
@@ -18,6 +20,13 @@ export default function RecipeDetailPage() {
   const [isFavorite, setIsFavorite] = useState(recipe?.favorite ?? false);
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
+
+  // 냉장고 재료 기준으로 레시피 재료의 fridgeStatus 동적 계산
+  const connectedIngredients = useMemo(() => {
+    if (!recipe) return [];
+    return calcIngredientFridgeStatus(recipe.ingredients, mockIngredients);
+  }, [recipe]);
+
   if (!recipe) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-400">
@@ -26,8 +35,8 @@ export default function RecipeDetailPage() {
     );
   }
 
-  const expiringCount = getExpiringCount(recipe);
-  const isCookable = getIsCookable(recipe);
+  const expiringCount = getExpiringCount(recipe, mockIngredients);
+  const isCookable = getIsCookable(recipe, mockIngredients);
 
   function handleToggleFavorite() {
     setIsFavorite((prev) => !prev);
@@ -100,9 +109,10 @@ export default function RecipeDetailPage() {
             title={recipe.title}
           />
 
-          {/* 재료 목록 */}
+          {/*연동된 재료 목록 전달*/}
           <RecipeIngredientList
-            ingredients={recipe.ingredients}
+            //ingredients={recipe.ingredients} // 냉장고 재료 기준으로 fridgeStatus 동적 계산된 재료 목록 전달
+            ingredients = {connectedIngredients}
             onOpenCartModal={() => setIsCartModalOpen(true)}
           />
 
