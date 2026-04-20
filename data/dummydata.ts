@@ -6,7 +6,7 @@ export const mockIngredients: Ingredient[] = [
     name: "두부",
     category: "기타",
     purchaseDate: "2026-04-01",
-    expiryDate: "2026-04-14",
+    expiryDate: "2026-04-30",
     quantityType: "number",
     quantityStatus: "보통",
     quantityValue: 2,
@@ -17,7 +17,7 @@ export const mockIngredients: Ingredient[] = [
     name: "시금치",
     category: "채소",
     purchaseDate: "2026-04-08",
-    expiryDate: "2026-04-12",  // D-2, 폐기임박
+    expiryDate: "2026-04-22",  // D-2, 폐기임박
     quantityType: "status",
     quantityStatus: "적음",
     favorite: false,
