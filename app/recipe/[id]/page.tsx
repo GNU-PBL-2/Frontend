@@ -38,55 +38,59 @@ export default function RecipeDetailPage() {
       <div className="w-full max-w-sm relative">
 
         {/* 상단 이미지 */}
-        <div className="relative w-full h-56">
+        <div className="sticky top-0 z-0 w-full h-56">
           <Image
             src={recipe.thumbnailUrl}
             alt={recipe.title}
             fill
             className="object-cover"
           />
-
-          {/* 닫기 버튼 */}
-          <button
-            onClick={() => router.back()}
-            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center shadow"
-            aria-label="뒤로가기"
-          >
-            ✕
-          </button>
-
-          {/* 즐겨찾기 버튼 */}
-          <button
-            onClick={handleToggleFavorite}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center shadow"
-            aria-label="즐겨찾기"
-          >
-            <span className={isFavorite ? "text-red-500" : "text-gray-300"}>♥</span>
-          </button>
         </div>
 
         {/* 콘텐츠 영역 */}
-        <div className="px-4 pt-4 pb-28">
+        <div className="relative z-10 bg-white rounded-t-3xl -mt-6 px-4 pt-5 pb-28">
 
-          {/* 제목 + 칩들 */}
+          {/* 제목, 요리 가능 여부, 즐겨찾기, 뒤로가기 버튼 */}
           <div className="flex items-start justify-between mb-1">
-            <h1 className="text-xl font-bold text-gray-900">{recipe.title}</h1>
-            {isCookable && (
-              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ml-2">
-                조리가능
-              </span>
-            )}
+            {/* 제목 + 요리 가능 여부 */}
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">{recipe.title}</h1>
+              {isCookable && (
+                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  요리 가능
+                </span>
+              )}
+            </div>
+            
+            {/* 즐겨찾기 + 뒤로가기 버튼 */}
+            <div className="flex items-center gap-8">
+              <button
+                onClick={handleToggleFavorite}
+                aria-label="즐겨찾기"
+              >
+                <span className={`text-2xl ${isFavorite ? "text-red-500" : "text-gray-300"}`}>
+                  ♥
+                </span>
+              </button>
+              <button
+                onClick={() => router.back()}
+                aria-label="뒤로가기"
+                className="text-gray-400 text-lg font-medium"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* 분류 + 소요시간 + 임박재료 */}
           <div className="flex items-center gap-3 text-sm text-gray-400 mb-4">
             <span>{recipe.categoryName}</span>
             <span>🕐 {recipe.cookTimeMin}분</span>
-            {expiringCount > 0 && (
+            {/* {expiringCount > 0 && (
               <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 임박재료 {expiringCount}개
               </span>
-            )}
+            )} */}
           </div>
 
           {/* 유튜브 썸네일 */}
@@ -107,7 +111,7 @@ export default function RecipeDetailPage() {
         </div>
 
         {/* 요리 완료 버튼 */}
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 pb-6 pt-2 bg-white border-t border-gray-100">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 pb-6 pt-2 bg-white border-t border-gray-100 z-20">
           <button className="w-full py-3.5 rounded-xl bg-green-700 text-white text-sm font-bold">
             요리 완료 →
           </button>
