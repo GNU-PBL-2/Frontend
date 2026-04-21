@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { RecipeIngredient } from "@/types/recipe";
 
+
 type AddToCartModalProps = {
   isOpen: boolean;
   ingredients: RecipeIngredient[];
   onClose: () => void;
+  onConfirm: (selectedIngredients: RecipeIngredient[]) => void; // 선택된 재료 전달 콜백
 };
 
 export default function AddToCartModal({
   isOpen,
   ingredients,
   onClose,
+  onConfirm,
 }: AddToCartModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -26,8 +29,16 @@ export default function AddToCartModal({
 
   function handleConfirm() {
     // TODO: 장바구니 연동 시 구현
-    console.log("장바구니 추가할 재료 IDs:", selectedIds);
+    // console.log("장바구니 추가할 재료 IDs:", selectedIds);
+    // onClose();
+
+    const selected = ingredients.filter((ing) =>
+    selectedIds.includes(ing.ingredientId)
+    );
+    onConfirm(selected);
+    setSelectedIds([]);
     onClose();
+  
   }
 
   return (

@@ -10,6 +10,10 @@ import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
 import RecipeStepList from "@/components/recipe/RecipeStepList";
 import AddToCartModal from "@/components/recipe/AddToCartModal";
+import Toast from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
+import { RecipeIngredient } from "@/types/recipe";
+
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -21,7 +25,9 @@ export default function RecipeDetailPage() {
   const searchParams = useSearchParams();
   const initialFavorite = searchParams.get("favorite") === "true";
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
+
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const { toastMessage, toastVisible, showToast } = useToast(); // 토스트 훅 사용
 // 냉장고 재료 기준으로 레시피 재료의 fridgeStatus 동적 계산된 재료 목록
 //todo - 백엔드 연동 전 Zustand 등으로 상태 관리할 때는 fridgeItems 상태를 전역으로 관리하면서 여기서는 useMemo로 계산된 connectedIngredients만 사용하도록 리팩토링 필요
 
@@ -43,7 +49,18 @@ export default function RecipeDetailPage() {
   const isCookable = getIsCookable(recipe, mockIngredients);
 
   function handleToggleFavorite() {
-    setIsFavorite((prev) => !prev);
+    const next = !isFavorite;
+    setIsFavorite(next);
+    showToast(
+      next 
+        ? `${recipe?.title}이/가 즐겨찾기에 추가되었습니다` 
+        : `${recipe?.title}이/가 즐겨찾기에서 제거되었습니다`
+    );
+  }
+
+  function handleCartConfirm(selected: RecipeIngredient[]) {
+    const names = selected.map((ing) => ing.name).join(", ");
+    showToast(`${names}이/가 장바구니에 추가되었습니다`);
   }
 
   return (
@@ -131,13 +148,18 @@ export default function RecipeDetailPage() {
           </button>
         </div>
 
+        <Toast message={toastMessage} visible={toastVisible} />
+
         {/* 장바구니 추가 모달 */}
         <AddToCartModal
           isOpen={isCartModalOpen}
           ingredients={recipe.ingredients}
           onClose={() => setIsCartModalOpen(false)}
+          onConfirm = {handleCartConfirm} // 선택된 재료 처리 함수 전달
         />
       </div>
+      
+      
     </div>
   );
 }

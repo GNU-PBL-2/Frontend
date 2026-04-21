@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Recipe } from "@/types/recipe";
 import Toast from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 
 
 type RecipeCardProps = {
@@ -24,24 +25,23 @@ export default function RecipeCard({
   onStart,
 }: RecipeCardProps) {
 
+  const { toastMessage, toastVisible, showToast } = useToast();
+
   {/* 즐겨찾기 상태 관리 */}
   // const [isFavorite, setIsFavorite] = useState(recipe.favorite); //부모 컴포넌트에서 상태 관리로 변경
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastVisible, setToastVisible] = useState(false);
+  // const [toastMessage, setToastMessage] = useState("");
+  // const [toastVisible, setToastVisible] = useState(false); // 훅 사용으로 리팩토링
 
   function handleToggleFavorite() {
     const next = !isFavorite;
     // setIsFavorite(next);
     onToggleFavorite?.(recipe.id);
 
-    setToastMessage(
+    showToast(
       next 
         ? `${recipe.title}이/가 즐겨찾기에 추가되었습니다` 
         : `${recipe.title}이/가 즐겨찾기에서 제거되었습니다`
     );
-    // 토스트 메시지 재노출을 위해 잠깐 숨겼다가 다시 보이게 함
-    setToastVisible(false);
-    setTimeout(() => setToastVisible(true), 10); 
   }
 
   return (
