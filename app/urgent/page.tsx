@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { mockIngredients, type Category } from "@/data/dummydata";
 import { getDaysLeft } from "@/utils/expiryHelpers";
@@ -44,7 +45,7 @@ function formatPurchaseDate(dateString: string) {
 export default function UrgentPage() {
   const urgentItems = mockIngredients
   .map((item) => {
-    const daysLeft = getDaysLeft(item.purchaseDate, item.category);
+    const daysLeft = getDaysLeft(item.expiryDate);
     return {
       ...item,
       daysLeft,
@@ -87,7 +88,7 @@ export default function UrgentPage() {
                   <p className="shrink-0 text-base font-extrabold text-gray-950">
                     {item.quantityValue !== undefined
                       ? `${item.quantityValue}개`
-                      : item.quantity}
+                      : item.quantityStatus}
                   </p>
                   <span
                     className={`ml-auto rounded-md px-2.5 py-1 text-sm font-bold leading-none ${getDdayBadgeClass(
@@ -105,9 +106,12 @@ export default function UrgentPage() {
           ))}
         </div>
 
-        <button className="mt-10 w-full rounded-md border border-gray-300 bg-white py-3 text-base font-bold text-gray-900 shadow-sm">
+        <Link
+          href="/recipe"
+          className="mt-10 block w-full rounded-md border border-gray-300 bg-white py-3 text-center text-base font-bold text-gray-900 shadow-sm"
+        >
           활용 가능한 레시피 확인하기
-        </button>
+        </Link>
 
         <div className="h-5" />
       </div>
