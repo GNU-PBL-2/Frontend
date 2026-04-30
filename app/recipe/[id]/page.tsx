@@ -153,7 +153,7 @@ export default function RecipeDetailPage() {
         {/* 장바구니 추가 모달 */}
         <AddToCartModal
           isOpen={isCartModalOpen}
-          ingredients={recipe.ingredients}
+          ingredients={connectedIngredients} // 냉장고 재료 기준으로 fridgeStatus 동적 계산된 재료 목록 전달
           onClose={() => setIsCartModalOpen(false)}
           onConfirm = {handleCartConfirm} // 선택된 재료 처리 함수 전달
         />
