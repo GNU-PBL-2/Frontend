@@ -6,7 +6,7 @@ export const mockIngredients: Ingredient[] = [
     name: "두부",
     category: "기타",
     purchaseDate: "2026-04-01",
-    expiryDate: "2026-04-30",
+    expiryDate: "2026-04-28",
     quantityType: "number",
     quantityStatus: "보통",
     quantityValue: 2,
@@ -17,7 +17,7 @@ export const mockIngredients: Ingredient[] = [
     name: "시금치",
     category: "채소",
     purchaseDate: "2026-04-08",
-    expiryDate: "2026-04-22",  // D-2, 폐기임박
+    expiryDate: "2026-05-30",  
     quantityType: "status",
     quantityStatus: "적음",
     favorite: false,
@@ -27,7 +27,7 @@ export const mockIngredients: Ingredient[] = [
     name: "계란",
     category: "유제품",
     purchaseDate: "2026-04-01",
-    expiryDate: "2026-04-20",
+    expiryDate: "2026-05-01",
     quantityType: "number",
     quantityStatus: "보통",
     quantityValue: 5,
@@ -38,7 +38,7 @@ export const mockIngredients: Ingredient[] = [
     name: "양파",
     category: "채소",
     purchaseDate: "2026-04-02",
-    expiryDate: "2026-04-15",
+    expiryDate: "2026-04-30",
     quantityType: "number",
     quantityStatus: "많음",
     quantityValue: 3,
@@ -49,9 +49,9 @@ export const mockIngredients: Ingredient[] = [
     name: "우유",
     category: "유제품",
     purchaseDate: "2026-04-02",
-    expiryDate: "2026-04-13",  // D-3, 폐기임박 경계
+    expiryDate: "2026-05-04",  // D-3, 폐기임박 경계
     quantityType: "status",
-    quantityStatus: "적음",
+    quantityStatus: "보통",
     favorite: false,
   },
   {
@@ -59,7 +59,7 @@ export const mockIngredients: Ingredient[] = [
     name: "소고기",
     category: "육류",
     purchaseDate: "2026-04-02",
-    expiryDate: "2026-04-16",  // D-6, 소비권장
+    expiryDate: "2026-05-05",  // D-6, 소비권장
     quantityType: "status",
     quantityStatus: "적음",
     favorite: true,
@@ -69,7 +69,7 @@ export const mockIngredients: Ingredient[] = [
     name: "당근",
     category: "채소",
     purchaseDate: "2026-04-01",
-    expiryDate: "2026-04-30",
+    expiryDate: "2026-05-15",
     quantityType: "number",
     quantityStatus: "보통",
     quantityValue: 2,
