@@ -1,6 +1,4 @@
-"use client";
-
-import { RecipeStep } from "@/types/recipe";
+import type { RecipeStep } from "@/types/recipe";
 
 type RecipeStepListProps = {
   steps: RecipeStep[];
@@ -12,6 +10,7 @@ export default function RecipeStepList({ steps }: RecipeStepListProps) {
       <h2 className="text-base font-bold text-gray-900 mb-3">조리방법</h2>
       <div className="flex flex-col gap-4">
         {steps
+          .slice() // 원본 배열 변경 방지 위해 복사본 생성
           .sort((a, b) => a.stepOrder - b.stepOrder)
           .map((step) => (
             <div key={step.stepOrder} className="flex gap-3">
