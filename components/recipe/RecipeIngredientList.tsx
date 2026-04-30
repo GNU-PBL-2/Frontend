@@ -11,7 +11,7 @@ type RecipeIngredientListProps = {
 function getFridgeStatusLabel(status: RecipeIngredient["fridgeStatus"]): string {
   switch (status) {
     case "ENOUGH": return "여유";
-    case "LOW": return "임박";
+    case "LOW": return "부족";  // 임박->부족으로 변경하여 수량/유통기한 구분 모호성 제거
     case "EXPIRING": return "임박";
     case "EXPIRED": return "만료";
     case "NONE": return "없음";
@@ -21,12 +21,12 @@ function getFridgeStatusLabel(status: RecipeIngredient["fridgeStatus"]): string 
 
 function getFridgeStatusColor(status: RecipeIngredient["fridgeStatus"]): string {
   switch (status) {
-    case "ENOUGH": return "text-green-600 bg-green-50";
-    case "LOW": return "text-orange-500 bg-orange-50";
-    case "EXPIRING": return "text-red-500 bg-red-50";
-    case "EXPIRED": return "text-gray-400 bg-gray-100";
-    case "NONE": return "text-gray-400 bg-gray-100";
-    default: return "text-gray-400 bg-gray-100";
+    case "ENOUGH": return   "text-green-600   bg-green-50";
+    case "LOW": return      "text-orange-500  bg-orange-50";
+    case "EXPIRING": return "text-red-500     bg-red-50";
+    case "EXPIRED": return  "text-gray-400    bg-gray-100";
+    case "NONE": return     "text-gray-400    bg-gray-100";
+    default: return         "text-gray-400    bg-gray-100";
   }
 }
 
