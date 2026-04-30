@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RecipeIngredient } from "@/types/recipe";
 
 
@@ -19,6 +19,12 @@ export default function AddToCartModal({
 }: AddToCartModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  // 모달이 닫힐 때 선택 초기화
+  useEffect(() => {
+    if(!isOpen) setSelectedIds([]);
+  }, [isOpen]);
+
+  
   if (!isOpen) return null;
 
   function handleToggle(id: number) {
