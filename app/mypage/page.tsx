@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Allergy, FoodCategory, TastePreference } from "@/types/preference";
+import BottomNav from "@/components/BottomNav";
+
 
 // 임시 mock 유저 데이터 — 백엔드 연동 시 교체
 const MOCK_USER = {
@@ -135,31 +137,6 @@ export default function MyPage() {
           </div>
         </section>
 
-        {/* 데이터 관리 */}
-        <section className="px-4 py-4 border-b border-gray-100">
-          <p className="text-xs text-gray-400 mb-3">데이터 관리</p>
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-700">냉장고 초기화</p>
-              <button
-                onClick={handleResetFridge}
-                className="text-sm font-semibold text-red-400"
-              >
-                초기화
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-700">즐겨찾기 초기화</p>
-              <button
-                onClick={handleResetFavorite}
-                className="text-sm font-semibold text-red-400"
-              >
-                초기화
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* 알림설정 */}
         <section className="px-4 py-4 border-b border-gray-100">
           <p className="text-xs text-gray-400 mb-3">알림설정</p>
@@ -191,6 +168,31 @@ export default function MyPage() {
           </div>
         </section>
 
+        {/* 데이터 관리 */}
+        <section className="px-4 py-4 border-b border-gray-100">
+          <p className="text-xs text-gray-400 mb-3">데이터 관리</p>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-700">냉장고 초기화</p>
+              <button
+                onClick={handleResetFridge}
+                className="text-sm font-semibold text-red-400"
+              >
+                초기화
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-700">즐겨찾기 초기화</p>
+              <button
+                onClick={handleResetFavorite}
+                className="text-sm font-semibold text-red-400"
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* 고객센터 */}
         <section className="px-4 py-4">
           <p className="text-xs text-gray-400 mb-3">고객센터</p>
@@ -212,6 +214,9 @@ export default function MyPage() {
             </button>
           </div>
         </section>
+        
+        {/* BottomNav */}
+        <BottomNav />
 
       </div>
     </div>
