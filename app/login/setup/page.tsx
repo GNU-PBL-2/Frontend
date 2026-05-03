@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getToken } from "@/utils/auth";
 
 type Option = {
   id: number;
@@ -88,6 +89,7 @@ function chipClasses(selected: boolean, tone: "rose" | "emerald" | "amber") {
 export default function LoginSetupPage() {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedTastes, setSelectedTastes] = useState<number[]>([]);
   const [selectedAllergies, setSelectedAllergies] = useState<number[]>([]);
@@ -121,8 +123,31 @@ export default function LoginSetupPage() {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLastStep) {
+      setIsSubmitting(true);
+      try {
+        const token = getToken();
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/api/v1/users/onboard`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({
+              categories: selectedCategories,
+              tastes: selectedTastes,
+              allergies: selectedAllergies,
+            }),
+          }
+        );
+      } catch {
+        // 실패해도 완료 페이지로 이동
+      } finally {
+        setIsSubmitting(false);
+      }
       router.push("/login/complete");
       return;
     }
@@ -187,9 +212,10 @@ export default function LoginSetupPage() {
           <button
             type="button"
             onClick={handleNext}
-            className="w-full rounded-2xl bg-[#118d3f] px-5 py-4 text-sm font-bold text-white shadow-[0_12px_24px_rgba(17,141,63,0.18)] transition-transform active:scale-[0.99]"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-[#118d3f] px-5 py-4 text-sm font-bold text-white shadow-[0_12px_24px_rgba(17,141,63,0.18)] transition-transform active:scale-[0.99] disabled:opacity-60"
           >
-            {isLastStep ? "완료" : "다음"}
+            {isSubmitting ? "저장 중..." : isLastStep ? "완료" : "다음"}
           </button>
           {!isLastStep ? (
             <button
