@@ -15,14 +15,8 @@ export function calcIngredientFridgeStatus(
 
     const daysLeft = getDaysLeft(found.expiryDate);
 
-    // 유통기한 초과
-    if (daysLeft < 0) return { ...ing, fridgeStatus: "EXPIRED" };
-
-    // 폐기임박 (D-3 이하)
+    // 유통기한 초과 또는 폐기임박 (D-3 이하)
     if (daysLeft <= 3) return { ...ing, fridgeStatus: "EXPIRING" };
-
-    // 수량 적음
-    if (found.quantityStatus === "적음") return { ...ing, fridgeStatus: "LOW" };
 
     // 충분
     return { ...ing, fridgeStatus: "ENOUGH" };
