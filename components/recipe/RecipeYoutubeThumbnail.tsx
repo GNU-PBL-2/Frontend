@@ -29,23 +29,26 @@ export default function RecipeYoutubeThumbnail({
       >
         {imgError || !thumbnailUrl ? (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <span className="text-5xl">🎬</span>
+            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
+              <span className="text-2xl ml-1">▶</span>
+            </div>
           </div>
         ) : (
-          <Image
-            src={thumbnailUrl}
-            alt={`${title} 영상`}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-          />
+          <>
+            <Image
+              src={thumbnailUrl}
+              alt={`${title} 영상`}
+              fill
+              className="object-cover"
+              onError={() => setImgError(true)}
+            />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                <span className="text-2xl ml-1">▶</span>
+              </div>
+            </div>
+          </>
         )}
-        {/* 재생 버튼 오버레이 */}
-        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-            <span className="text-2xl ml-1">▶</span>
-          </div>
-        </div>
       </a>
     </div>
   );

@@ -8,9 +8,9 @@ type RecipeIngredientListProps = {
 };
 
 const STATUS_CONFIG = {
-  ENOUGH:   { label: "여유", dot: "bg-green-400",  text: "text-green-600",  bg: "bg-green-50",  icon: "✓" },
-  EXPIRING: { label: "임박", dot: "bg-red-400",    text: "text-red-500",    bg: "bg-red-50",    icon: "⚡" },
-  NONE:     { label: "없음", dot: "bg-gray-300",   text: "text-gray-400",   bg: "bg-gray-50",   icon: "✗" },
+  ENOUGH:   { label: "여유", text: "text-green-600", bg: "bg-green-50", icon: "✓" },
+  EXPIRING: { label: "임박", text: "text-red-500",   bg: "bg-red-50",   icon: "⚡" },
+  NONE:     { label: "없음", text: "text-gray-400",  bg: "bg-gray-50",  icon: "✗" },
 } as const;
 
 export default function RecipeIngredientList({

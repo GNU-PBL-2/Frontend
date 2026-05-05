@@ -3,8 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import { RecipeListItem } from "@/types/recipe";
-import Toast from "@/components/Toast";
-import { useToast } from "@/hooks/useToast";
 
 type RecipeCardProps = {
   recipe: RecipeListItem;
@@ -12,6 +10,7 @@ type RecipeCardProps = {
   onToggleFavorite?: (id: number) => void;
   onStart: () => void;
   index?: number;
+  showToast?: (message: string) => void;
 };
 
 export default function RecipeCard({
@@ -20,15 +19,15 @@ export default function RecipeCard({
   onToggleFavorite,
   onStart,
   index = 0,
+  showToast,
 }: RecipeCardProps) {
-  const { toastMessage, toastVisible, showToast } = useToast();
   const [imgError, setImgError] = useState(false);
 
   function handleToggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
     const next = !isFavorite;
     onToggleFavorite?.(recipe.id);
-    showToast(
+    showToast?.(
       next
         ? `${recipe.title}이/가 즐겨찾기에 추가되었습니다`
         : `${recipe.title}이/가 즐겨찾기에서 제거되었습니다`
@@ -36,9 +35,8 @@ export default function RecipeCard({
   }
 
   return (
-    <>
-      <div
-        className="animate-fadeInUp rounded-2xl overflow-hidden shadow-md active:scale-[0.97] transition-transform duration-150 cursor-pointer"
+    <div
+      className="animate-fadeInUp rounded-2xl overflow-hidden shadow-md active:scale-[0.97] transition-transform duration-150 cursor-pointer"
         style={{ animationDelay: `${index * 60}ms` }}
         onClick={onStart}
       >
@@ -104,9 +102,6 @@ export default function RecipeCard({
         >
           요리 시작 →
         </button>
-      </div>
-
-      <Toast message={toastMessage} visible={toastVisible} />
-    </>
+    </div>
   );
 }

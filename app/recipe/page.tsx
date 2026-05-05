@@ -6,6 +6,8 @@ import { fetchRecipes } from "@/lib/recipeApi";
 import { RecipeListItem, RecipeFilterType } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
+import Toast from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 
 const FILTERS: RecipeFilterType[] = ["임박우선", "전체", "조리가능", "즐겨찾기"];
 const PAGE_SIZE = 10;
@@ -32,6 +34,7 @@ export default function RecipePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toastMessage, toastVisible, showToast } = useToast();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
@@ -193,6 +196,7 @@ export default function RecipePage() {
                   isFavorite={favoriteIds.has(recipe.id)}
                   onToggleFavorite={handleToggleFavorite}
                   onStart={() => handleRecipeClick(recipe)}
+                  showToast={showToast}
                 />
               ))}
 
@@ -215,6 +219,7 @@ export default function RecipePage() {
         </div>
 
         <BottomNav />
+        <Toast message={toastMessage} visible={toastVisible} />
       </div>
     </div>
   );

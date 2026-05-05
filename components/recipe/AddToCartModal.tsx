@@ -19,12 +19,10 @@ export default function AddToCartModal({
 }: AddToCartModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  // 모달이 닫힐 때 선택 초기화
   useEffect(() => {
-    if(!isOpen) setSelectedIds([]);
+    if (!isOpen) setSelectedIds([]);
   }, [isOpen]);
 
-  
   if (!isOpen) return null;
 
   function handleToggle(id: number) {
@@ -34,17 +32,12 @@ export default function AddToCartModal({
   }
 
   function handleConfirm() {
-    // TODO: 장바구니 연동 시 구현
-    // console.log("장바구니 추가할 재료 IDs:", selectedIds);
-    // onClose();
-
     const selected = ingredients.filter((ing) =>
-    selectedIds.includes(ing.ingredientId)
+      selectedIds.includes(ing.ingredientId)
     );
     onConfirm(selected);
     setSelectedIds([]);
     onClose();
-  
   }
 
   return (
