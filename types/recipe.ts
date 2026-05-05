@@ -1,5 +1,5 @@
-// 백엔드 fridgeStatus 값과 동일하게 맞춤
-export type FridgeStatus = "NONE" | "ENOUGH" | "LOW" | "EXPIRING" | "EXPIRED";
+// 백엔드 FridgeStatus enum과 동일
+export type FridgeStatus = "NONE" | "ENOUGH" | "EXPIRING";
 
 // 레시피 분류
 export type RecipeCategory = "한식" | "중식" | "일식" | "양식" | "분식" | "기타";
@@ -36,11 +36,24 @@ export type Recipe = {
   steps: RecipeStep[];
 };
 
-// 레시피 카드에서 계산해서 쓸 파생 정보
-// — 백엔드에서 안 주는 값들, 프론트에서 계산
-export type RecipeDerivedInfo = {
-  expiringCount: number;    // 임박 재료 몇 개 사용하는지
-  isCookable: boolean;      // 냉장고 재료로 바로 조리 가능한지
+// 레시피 목록 API 응답 (GET /api/v1/recipes)
+export type RecipeListItem = {
+  id: number;
+  title: string;
+  thumbnailUrl: string;
+  cookTimeMin: number;
+  cookable: boolean;
+  expiringIngredientCount: number;
+  isFavorite: boolean;
+};
+
+// Spring Page 응답 래퍼
+export type RecipePage = {
+  content: RecipeListItem[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  last: boolean;
 };
 
 // 관리자 레시피 등록/수정 폼 전용 타입

@@ -42,7 +42,7 @@ export function getIsCookable(
   return ingredients
     .filter((ing) => !ing.isSubstitutable)
     .every(
-      (ing) => ing.fridgeStatus !== "NONE" && ing.fridgeStatus !== "EXPIRED"
+      (ing) => ing.fridgeStatus !== "NONE"
     );
 }
 
@@ -282,7 +282,7 @@ export const mockRecipes: Recipe[] = [
         amount: "1",
         unit: "대",
         isSubstitutable: true,
-        fridgeStatus: "LOW",
+        fridgeStatus: "ENOUGH",
       },
     ],
     steps: [

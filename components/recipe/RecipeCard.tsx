@@ -2,123 +2,106 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Recipe } from "@/types/recipe";
-import Toast from "@/components/Toast";
-import { useToast } from "@/hooks/useToast";
-
+import { RecipeListItem } from "@/types/recipe";
 
 type RecipeCardProps = {
-  recipe: Recipe;
-  expiringCount: number;
-  isCookable: boolean;
+  recipe: RecipeListItem;
+  isFavorite: boolean;
+  onToggleFavorite?: (id: number) => void;
   onStart: () => void;
-  onToggleFavorite?: (id: number) => void; // 즐겨찾기 토글 핸들러
-  isFavorite?: boolean; // 즐겨찾기 상태
+  index?: number;
+  showToast?: (message: string) => void;
 };
 
 export default function RecipeCard({
   recipe,
-  expiringCount,
-  isCookable,
   isFavorite,
   onToggleFavorite,
   onStart,
+  index = 0,
+  showToast,
 }: RecipeCardProps) {
+  const [imgError, setImgError] = useState(false);
 
-  const { toastMessage, toastVisible, showToast } = useToast();
-
-  {/* 즐겨찾기 상태 관리 */}
-  // const [isFavorite, setIsFavorite] = useState(recipe.favorite); //부모 컴포넌트에서 상태 관리로 변경
-  // const [toastMessage, setToastMessage] = useState("");
-  // const [toastVisible, setToastVisible] = useState(false); // 훅 사용으로 리팩토링
-
-  function handleToggleFavorite() {
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
     const next = !isFavorite;
-    // setIsFavorite(next);
     onToggleFavorite?.(recipe.id);
-
-    showToast(
-      next 
-        ? `${recipe.title}이/가 즐겨찾기에 추가되었습니다` 
+    showToast?.(
+      next
+        ? `${recipe.title}이/가 즐겨찾기에 추가되었습니다`
         : `${recipe.title}이/가 즐겨찾기에서 제거되었습니다`
     );
   }
 
   return (
-    <>
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-
-        {/* 요리 이미지 */}
-        <div className="relative w-full h-40">
-          <Image
-            src={recipe.thumbnailUrl}
-            alt={recipe.title}
-            fill
-            className="object-cover"
-          />
-          {/* 즐겨찾기 하트 */}
-          <button
-            onClick={handleToggleFavorite}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center shadow"
-            aria-label="즐겨찾기"
-          >
-            <span className={isFavorite ? "text-red-500" : "text-gray-300"}>
-              ♥
-            </span>
-          </button>
-
-          {/* 임박재료 칩 — 있을 때만 */}
-          {expiringCount > 0 && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-              임박재료 {expiringCount}개
+    <div
+      className="animate-fadeInUp rounded-2xl overflow-hidden shadow-md active:scale-[0.97] transition-transform duration-150 cursor-pointer"
+        style={{ animationDelay: `${index * 60}ms` }}
+        onClick={onStart}
+      >
+        {/* 히어로 이미지 */}
+        <div className="relative w-full h-52">
+          {imgError || !recipe.thumbnailUrl ? (
+            <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+              <span className="text-6xl">🍽️</span>
             </div>
+          ) : (
+            <Image
+              src={recipe.thumbnailUrl}
+              alt={recipe.title}
+              fill
+              className="object-cover"
+              onError={() => setImgError(true)}
+            />
           )}
-        </div>
 
-        {/* 카드 하단 정보 */}
-        <div className="px-4 pt-3 pb-4">
-          {/* 1. 제목 영역: 길어지면 ... 처리 */}
-          <div className="mb-2">
-            <h3 className="text-lg font-bold text-gray-900 truncate" title={recipe.title}>
+          {/* 그라디언트 오버레이 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+
+          {/* 상단: 임박재료 배지 + 즐겨찾기 */}
+          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+            {recipe.expiringIngredientCount > 0 ? (
+              <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+                🔥 임박재료 {recipe.expiringIngredientCount}개
+              </span>
+            ) : (
+              <div />
+            )}
+            <button
+              onClick={handleToggleFavorite}
+              className="w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center"
+              aria-label="즐겨찾기"
+            >
+              <span className={`text-xl transition-colors duration-200 ${isFavorite ? "text-red-400" : "text-white/60"}`}>
+                ♥
+              </span>
+            </button>
+          </div>
+
+          {/* 하단: 제목 + 메타 */}
+          <div className="absolute bottom-3 left-4 right-4">
+            <h3 className="text-white font-bold text-[17px] leading-snug mb-2 drop-shadow">
               {recipe.title}
             </h3>
-          </div>
-
-          {/* 2. 정보 영역: 모든 요소를 한 줄로 배치 */}
-          <div className="flex items-center gap-2 text-xs font-medium text-gray-500 whitespace-nowrap overflow-hidden">
-            {/* 조리가능 칩 */}
-            {isCookable && (
-              <span className="shrink-0 bg-green-50 text-green-600 font-bold px-1.5 py-0.5 rounded border border-green-100">
-                조리가능
-              </span>
-            )}
-
-            {/* 분류 */}
-            <span className="shrink-0">{recipe.categoryName}</span>
-
-            {/* 구분선 */}
-            <span className="shrink-0 w-px h-2.5 bg-gray-200" />
-
-            {/* 소요시간 */}
-            <span className="flex items-center gap-0.5 shrink-0">
-              <span className="text-sm">🕐</span>
-              {recipe.cookTimeMin}분
-            </span>
+            <div className="flex items-center gap-2">
+              {recipe.cookable && (
+                <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow">
+                  조리가능
+                </span>
+              )}
+              <span className="text-white/80 text-xs font-medium">⏰ {recipe.cookTimeMin}분</span>
+            </div>
           </div>
         </div>
 
-          {/* 요리 시작 버튼 */}
-          <button
-            onClick={onStart}
-            className="w-full py-3 rounded-b-xl bg-green-700 text-white text-sm font-bold"
-          >
-            요리 시작 →
-          </button>
-        </div>
-            
-
-      {/* 토스트 메시지 */}
-      <Toast message={toastMessage} visible={toastVisible} />
-    </>
+        {/* 요리 시작 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onStart(); }}
+          className="w-full py-3.5 bg-green-700 hover:bg-green-600 active:bg-green-800 text-white text-sm font-bold transition-colors"
+        >
+          요리 시작 →
+        </button>
+    </div>
   );
 }
