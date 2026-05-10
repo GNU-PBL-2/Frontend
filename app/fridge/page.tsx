@@ -155,6 +155,9 @@ export default function FridgePage() {
         };
         setItems((prev) => [enriched, ...prev]);
         showToast(`${form.selectedIngredientName} 추가 완료`);
+        setIsModalOpen(false);
+        setForm(INITIAL_FRIDGE_FORM);
+        setEditingFridgeId(null);
       } catch {
         showToast("재료 추가에 실패했어요");
       }
@@ -173,22 +176,23 @@ export default function FridgePage() {
           )
         );
         showToast("수정 완료");
+        setIsModalOpen(false);
+        setForm(INITIAL_FRIDGE_FORM);
+        setEditingFridgeId(null);
       } catch {
         showToast("재료 수정에 실패했어요");
       }
     }
-
-    setIsModalOpen(false);
-    setForm(INITIAL_FRIDGE_FORM);
-    setEditingFridgeId(null);
   }
 
   async function handleDelete(fridgeId: number) {
+    const snapshot = items;
     setItems((prev) => prev.filter((item) => item.fridgeId !== fridgeId));
     setSelectedIds((prev) => prev.filter((id) => id !== fridgeId));
     try {
       await deleteFridgeItem(fridgeId);
     } catch {
+      setItems(snapshot);
       showToast("삭제에 실패했어요");
     }
   }

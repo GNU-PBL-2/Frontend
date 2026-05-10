@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import Link from "next/link";
 import {
   Bell, Trash2, Timer, Package, AlertTriangle,
@@ -17,7 +17,7 @@ import {
   type NotificationItem,
 } from "@/lib/dashboardApi";
 
-type LucideIcon = React.ComponentType<{ className?: string; strokeWidth?: number }>;
+type LucideIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
 const INGREDIENT_ICON: Record<string, { Icon: LucideIcon; color: string; bg: string }> = {
   소고기:   { Icon: Beef,    color: "text-red-500",    bg: "bg-red-50"    },

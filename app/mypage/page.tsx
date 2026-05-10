@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
@@ -68,7 +68,7 @@ function Toggle({
 }: {
   on: boolean;
   onChange: (v: boolean) => void;
-  bellRef?: React.RefObject<HTMLDivElement | null>;
+  bellRef?: RefObject<HTMLDivElement | null>;
 }) {
   function handleClick() {
     onChange(!on);
@@ -209,7 +209,7 @@ function PressCard({
   children,
 }: {
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -259,10 +259,10 @@ export default function MyPage() {
   }, []);
 
   async function handleSaveAllergy(next: string[]) {
-    setAllergies(next);
     setOpenModal(null);
     try {
       await updateUserPreferences({ allergies: next, tastes, categories });
+      setAllergies(next);
       showToast("알레르기 설정이 저장됐어요");
     } catch {
       showToast("저장에 실패했어요");
@@ -270,10 +270,10 @@ export default function MyPage() {
   }
 
   async function handleSaveTaste(next: string[]) {
-    setTastes(next);
     setOpenModal(null);
     try {
       await updateUserPreferences({ allergies, tastes: next, categories });
+      setTastes(next);
       showToast("취향 설정이 저장됐어요");
     } catch {
       showToast("저장에 실패했어요");
@@ -281,10 +281,10 @@ export default function MyPage() {
   }
 
   async function handleSaveCategory(next: string[]) {
-    setCategories(next);
     setOpenModal(null);
     try {
       await updateUserPreferences({ allergies, tastes, categories: next });
+      setCategories(next);
       showToast("카테고리 설정이 저장됐어요");
     } catch {
       showToast("저장에 실패했어요");

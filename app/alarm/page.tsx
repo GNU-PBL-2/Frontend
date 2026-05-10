@@ -44,11 +44,12 @@ function toAlarmItem(n: NotificationItem): AlarmItem {
 export default function AlarmPage() {
   const [alarmItems, setAlarmItems] = useState<AlarmItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchNotifications()
       .then((data) => setAlarmItems(data.map(toAlarmItem)))
-      .catch(() => setAlarmItems([]))
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -87,7 +88,11 @@ export default function AlarmPage() {
           </button>
         </div>
 
-        {alarmItems.length === 0 ? (
+        {error ? (
+          <div className="h-[60vh] flex items-center justify-center text-sm text-red-400">
+            알림을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.
+          </div>
+        ) : alarmItems.length === 0 ? (
           <div className="h-[60vh] flex items-center justify-center text-sm text-gray-400">
             새로운 알림이 없습니다
           </div>

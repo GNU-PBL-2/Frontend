@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
 import { ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator, Trash2, X } from "lucide-react";
+import { fetchMasterIngredients, createFridgeItem, type MasterIngredient } from "@/lib/fridgeApi";
 
 // ── 애니메이션 ────────────────────────────────────────────────────
 const STYLES = `
@@ -199,9 +200,15 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [draftItems, setDraftItems] = useState<CartItem[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [masterIngredients, setMasterIngredients] = useState<MasterIngredient[]>([]);
+  const [addingToFridge, setAddingToFridge] = useState(false);
 
   const checkedItems = items.filter((i) => i.checked);
   const checkedCount = checkedItems.length;
+
+  useEffect(() => {
+    fetchMasterIngredients().then(setMasterIngredients).catch(() => {});
+  }, []);
 
   // ── 헬퍼 ──
   function appendItem(target: CartItem[], name: string): CartItem[] {
@@ -238,9 +245,37 @@ export default function CartPage() {
     setItems((prev) => prev.filter((i) => !i.checked));
   }
 
-  function handleAddToFridge() {
-    if (checkedCount === 0) return;
-    setItems((prev) => prev.filter((i) => !i.checked));
+  async function handleAddToFridge() {
+    if (checkedCount === 0 || addingToFridge) return;
+    setAddingToFridge(true);
+
+    const defaultExpiry = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split("T")[0];
+    })();
+
+    const nameToIngredient = new Map(masterIngredients.map((m) => [m.name, m]));
+    const succeeded: number[] = [];
+
+    await Promise.allSettled(
+      checkedItems.map(async (cartItem) => {
+        const master = nameToIngredient.get(cartItem.name);
+        if (!master) return;
+        await createFridgeItem({
+          ingredientId: master.ingredientId,
+          quantity: cartItem.quantity,
+          unit: "개",
+          expiryDate: defaultExpiry,
+        });
+        succeeded.push(cartItem.id);
+      })
+    );
+
+    if (succeeded.length > 0) {
+      setItems((prev) => prev.filter((i) => !succeeded.includes(i.id)));
+    }
+    setAddingToFridge(false);
   }
 
   // ── add 뷰 핸들러 ──
