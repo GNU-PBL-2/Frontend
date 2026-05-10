@@ -41,3 +41,19 @@ export async function fetchRecipeDetail(id: number): Promise<Recipe> {
   if (!res.ok) throw new Error(`레시피 상세 로드 실패: ${res.status}`);
   return res.json();
 }
+
+export async function addFavorite(recipeId: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/v1/recipes/${recipeId}/favorites`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`즐겨찾기 추가 실패: ${res.status}`);
+}
+
+export async function removeFavorite(recipeId: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/v1/recipes/${recipeId}/favorites`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`즐겨찾기 제거 실패: ${res.status}`);
+}

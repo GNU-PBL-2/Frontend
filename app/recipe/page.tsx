@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { fetchRecipes } from "@/lib/recipeApi";
+import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { RecipeListItem, RecipeFilterType } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
@@ -94,12 +94,35 @@ export default function RecipePage() {
     }
   }
 
-  function handleToggleFavorite(id: number) {
+  async function handleToggleFavorite(id: number) {
+    const wasFavorite = favoriteIds.has(id);
+    const title = recipes.find((r) => r.id === id)?.title ?? "";
+
     setFavoriteIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      wasFavorite ? next.delete(id) : next.add(id);
       return next;
     });
+
+    try {
+      if (wasFavorite) {
+        await removeFavorite(id);
+      } else {
+        await addFavorite(id);
+      }
+      showToast(
+        wasFavorite
+          ? `${title}이/가 즐겨찾기에서 제거되었습니다`
+          : `${title}이/가 즐겨찾기에 추가되었습니다`
+      );
+    } catch {
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        wasFavorite ? next.add(id) : next.delete(id);
+        return next;
+      });
+      showToast("즐겨찾기 변경에 실패했어요");
+    }
   }
 
   function handleRecipeClick(recipe: RecipeListItem) {
@@ -196,7 +219,6 @@ export default function RecipePage() {
                   isFavorite={favoriteIds.has(recipe.id)}
                   onToggleFavorite={handleToggleFavorite}
                   onStart={() => handleRecipeClick(recipe)}
-                  showToast={showToast}
                 />
               ))}
 

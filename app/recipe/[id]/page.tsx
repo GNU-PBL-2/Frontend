@@ -3,7 +3,7 @@
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { fetchRecipeDetail } from "@/lib/recipeApi";
+import { fetchRecipeDetail, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { Recipe, RecipeIngredient } from "@/types/recipe";
 import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
@@ -62,14 +62,24 @@ export default function RecipeDetailPage() {
     load();
   }, [id]);
 
-  function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-    showToast(
-      next
-        ? `${recipe?.title}이/가 즐겨찾기에 추가되었습니다`
-        : `${recipe?.title}이/가 즐겨찾기에서 제거되었습니다`
-    );
+  async function handleToggleFavorite() {
+    const wasFavorite = isFavorite;
+    setIsFavorite(!wasFavorite);
+    try {
+      if (wasFavorite) {
+        await removeFavorite(Number(id));
+      } else {
+        await addFavorite(Number(id));
+      }
+      showToast(
+        wasFavorite
+          ? `${recipe?.title}이/가 즐겨찾기에서 제거되었습니다`
+          : `${recipe?.title}이/가 즐겨찾기에 추가되었습니다`
+      );
+    } catch {
+      setIsFavorite(wasFavorite);
+      showToast("즐겨찾기 변경에 실패했어요");
+    }
   }
 
   function handleCartConfirm(selected: RecipeIngredient[]) {
