@@ -1,24 +1,38 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setToken } from "@/utils/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
-function LoadingScreen() {
+function LoadingScreen({ errorMessage }: { errorMessage?: string }) {
   return (
     <main className="min-h-screen bg-[#f2f4f7] text-[#111111]">
       <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col items-center justify-center bg-white px-6 py-10 text-center">
-        <div className="mb-6 h-11 w-11 animate-spin rounded-full border-4 border-[#d9ece0] border-t-[#118d3f]" />
+        {!errorMessage && (
+          <div className="mb-6 h-11 w-11 animate-spin rounded-full border-4 border-[#d9ece0] border-t-[#118d3f]" />
+        )}
         <h1 className="text-2xl font-extrabold tracking-[-0.04em]">
-          로그인 중...
+          {errorMessage ? "로그인에 실패했어요" : "로그인 중..."}
         </h1>
         <p className="mt-3 text-sm leading-6 text-[#6f7682]">
-          잠시만 기다려주세요.
-          <br />
-          로그인 정보를 확인하고 있어요.
+          {errorMessage ? errorMessage : "잠시만 기다려주세요."}
+          {!errorMessage && (
+            <>
+              <br />
+              로그인 정보를 확인하고 있어요.
+            </>
+          )}
         </p>
+        {errorMessage && (
+          <a
+            href="/login"
+            className="mt-8 w-full rounded-2xl bg-[#118d3f] px-5 py-4 text-sm font-bold text-white"
+          >
+            로그인으로 돌아가기
+          </a>
+        )}
       </div>
     </main>
   );
@@ -28,6 +42,7 @@ function KakaoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const called = useRef(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (called.current) return;
@@ -47,9 +62,13 @@ function KakaoCallbackContent() {
           body: JSON.stringify({ code, socialProvider: "KAKAO", userRole: "USER" }),
         });
 
-        if (!loginRes.ok) throw new Error("Login failed");
+        if (!loginRes.ok) {
+          const errorBody = await loginRes.text();
+          throw new Error(`로그인 API 실패 (${loginRes.status}): ${errorBody}`);
+        }
 
         const { accessToken } = (await loginRes.json()) as { accessToken: string };
+        if (!accessToken) throw new Error("로그인 API 응답에 accessToken이 없어요.");
         setToken(accessToken);
 
         // 기존 유저는 선호도가 있으면 홈으로, 신규 유저는 설정 페이지로
@@ -57,7 +76,10 @@ function KakaoCallbackContent() {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
-        if (!userRes.ok) throw new Error("User fetch failed");
+        if (!userRes.ok) {
+          const errorBody = await userRes.text();
+          throw new Error(`유저 조회 API 실패 (${userRes.status}): ${errorBody}`);
+        }
 
         const user = (await userRes.json()) as {
           categories: string[];
@@ -66,18 +88,18 @@ function KakaoCallbackContent() {
         };
 
         const hasPreferences =
-          user.categories.length > 0 ||
-          user.tastes.length > 0 ||
-          user.allergies.length > 0;
+          (user.categories?.length ?? 0) > 0 ||
+          (user.tastes?.length ?? 0) > 0 ||
+          (user.allergies?.length ?? 0) > 0;
 
         router.replace(hasPreferences ? "/" : "/login/setup");
-      } catch {
-        router.replace("/login");
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "알 수 없는 오류가 발생했어요.");
       }
     })();
   }, [router, searchParams]);
 
-  return <LoadingScreen />;
+  return <LoadingScreen errorMessage={errorMessage} />;
 }
 
 export default function KakaoCallbackPage() {
