@@ -1,69 +1,72 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Ingredient } from "@/types/ingredient";
+import Image from "next/image";
+import { FridgeItem } from "@/lib/fridgeApi";
 import { getDaysLeft } from "@/utils/expiryHelpers";
+import { Carrot, Flame, Milk, Package } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { getIngredientImageUrl } from "@/data/ingredientImages";
 
-// ── 헬퍼 함수들 ─────────────────────────────────────────
+// ── 카테고리 폴백 아이콘 테마 ─────────────────────────────────────
 
-function formatDateKorean(dateString: string) {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-}
+type CategoryKey = "채소" | "육류" | "유제품" | "기타";
 
-function getDdayText(daysLeft: number) {
+const CATEGORY_CONFIG: Record<CategoryKey, {
+  icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
+  tagBg: string;
+  tagText: string;
+  tagBorder: string;
+}> = {
+  채소:  { icon: Carrot,  iconBg: "bg-emerald-100", iconColor: "text-emerald-600", tagBg: "bg-emerald-50",  tagText: "text-emerald-700", tagBorder: "border-emerald-200" },
+  육류:  { icon: Flame,   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    tagBg: "bg-rose-50",    tagText: "text-rose-700",    tagBorder: "border-rose-200"    },
+  유제품: { icon: Milk,   iconBg: "bg-sky-100",     iconColor: "text-sky-600",     tagBg: "bg-sky-50",     tagText: "text-sky-700",     tagBorder: "border-sky-200"     },
+  기타:  { icon: Package, iconBg: "bg-violet-100",  iconColor: "text-violet-600",  tagBg: "bg-violet-50",  tagText: "text-violet-700",  tagBorder: "border-violet-200"  },
+};
+
+const DEFAULT_CATEGORY = {
+  icon: Package,
+  iconBg: "bg-gray-100", iconColor: "text-gray-500",
+  tagBg: "bg-gray-50",   tagText: "text-gray-600", tagBorder: "border-gray-200",
+};
+
+// ── D-day 헬퍼 ───────────────────────────────────────────────────
+
+function getDdayLabel(daysLeft: number) {
   if (daysLeft < 0) return `D+${Math.abs(daysLeft)}`;
   if (daysLeft === 0) return "D-day";
   return `D-${daysLeft}`;
 }
 
-function getDdayPillClass(daysLeft: number) {
-  if (daysLeft <= 3) return "bg-red-500 text-white";
-  if (daysLeft <= 7) return "bg-orange-400 text-white";
-  return "bg-green-600 text-white";
+function getDdayGradient(daysLeft: number) {
+  if (daysLeft < 0)  return "from-gray-400 to-gray-500";
+  if (daysLeft <= 2) return "from-red-500 to-rose-600";
+  if (daysLeft <= 7) return "from-amber-400 to-orange-500";
+  return "from-emerald-400 to-green-600";
 }
 
-function getQuantityLevel(status: Ingredient["quantityStatus"]) {
-  switch (status) {
-    case "적음": return 1;
-    case "보통": return 2;
-    case "많음": return 3;
-    default: return 1;
-  }
+function getDdaySubLabel(daysLeft: number) {
+  if (daysLeft < 0) return "경과";
+  if (daysLeft <= 2) return "위험";
+  if (daysLeft <= 7) return "주의";
+  return "안전";
 }
 
-function getQuantityBarColor(status: Ingredient["quantityStatus"]) {
-  switch (status) {
-    case "적음": return "bg-red-400";
-    case "보통": return "bg-green-400";
-    case "많음": return "bg-green-700";
-    default: return "bg-gray-300";
-  }
-}
-
-function getQuantityTextColor(status: Ingredient["quantityStatus"]) {
-  switch (status) {
-    case "적음": return "text-red-400";
-    case "보통": return "text-green-400";
-    case "많음": return "text-green-700";
-    default: return "text-gray-400";
-  }
-}
-
-// ── Props ───────────────────────────────────────────────
+// ── Props ────────────────────────────────────────────────────────
 
 type FridgeItemCardProps = {
-  item: Ingredient;
-  isSelectMode: boolean;   // 꾹 누르기로 진입한 선택 모드
-  isSelected: boolean;     // 현재 카드가 선택됐는지
-  onLongPress: (id: number) => void;   // 꾹 누르기 → 선택 모드 진입
-  onSelect: (id: number) => void;      // 선택 모드에서 탭 → 선택/해제
-  onEditPress: (item: Ingredient) => void;  // 수정 버튼 → FridgePage에서 모달 열기
-  onDelete: (id: number) => void;      // 삭제 confirm 후 실행
+  item: FridgeItem;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onLongPress: (fridgeId: number) => void;
+  onSelect: (fridgeId: number) => void;
+  onEditPress: (item: FridgeItem) => void;
+  onDelete: (fridgeId: number) => void;
 };
 
-// ── 컴포넌트 ────────────────────────────────────────────
+// ── 컴포넌트 ─────────────────────────────────────────────────────
 
 export default function FridgeItemCard({
   item,
@@ -75,164 +78,187 @@ export default function FridgeItemCard({
   onDelete,
 }: FridgeItemCardProps) {
   const [isSwiped, setIsSwiped] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const touchStartX = useRef<number>(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const daysLeft = getDaysLeft(item.expiryDate);
-  const quantityLevel =
-    item.quantityType === "number" && item.quantityValue !== undefined
-      ? Math.min(item.quantityValue, 3)
-      : getQuantityLevel(item.quantityStatus);
-  const quantityLabel =
-    item.quantityType === "number" && item.quantityValue !== undefined
-      ? `${item.quantityValue}개`
-      : item.quantityStatus;
+  const cat = CATEGORY_CONFIG[item.categoryName as CategoryKey] ?? DEFAULT_CATEGORY;
+  const CatIcon = cat.icon;
+  const imgUrl = getIngredientImageUrl(item.ingredientName, item.categoryName);
+  const formattedExpiry = item.expiryDate.replace(/-/g, ".");
 
-  // ── 스와이프 핸들러 ──
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
-
-    // 꾹 누르기 타이머 시작 (500ms)
     longPressTimer.current = setTimeout(() => {
-      if (!isSelectMode) onLongPress(item.id);
+      if (!isSelectMode) onLongPress(item.fridgeId);
     }, 500);
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
-    // 꾹 누르기 타이머 취소
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setIsSwiped(true);    // 왼쪽으로 → 삭제 버튼 노출
-    if (diff < -30) setIsSwiped(false);  // 오른쪽으로 → 닫기
+    if (diff > 60) setIsSwiped(true);
+    if (diff < -30) setIsSwiped(false);
   }
 
   function handleTouchMove() {
-    // 움직이면 꾹 누르기 취소
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
   }
 
-  // ── 카드 탭 핸들러 ──
   function handleCardTap() {
-    if (isSwiped) {
-      setIsSwiped(false); // 스와이프 열린 상태면 탭 시 닫기
-      return;
-    }
-    if (isSelectMode) {
-      onSelect(item.id);
-    }
+    if (isSwiped) { setIsSwiped(false); return; }
+    if (isSelectMode) onSelect(item.fridgeId);
   }
 
-  // ── 삭제 confirm ──
   function handleDeleteRequest() {
-    const confirmed = window.confirm(`"${item.name}"을(를) 삭제할까요?`);
-    if (confirmed) onDelete(item.id);
+    const confirmed = window.confirm(`"${item.ingredientName}"을(를) 삭제할까요?`);
+    if (confirmed) onDelete(item.fridgeId);
     setIsSwiped(false);
+  }
+
+  // ── 좌측 썸네일 렌더링 ──────────────────────────────────────────
+
+  function renderThumbnail() {
+    // 선택 모드: 체크박스
+    if (isSelectMode) {
+      return (
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors
+          ${isSelected ? "bg-green-500" : "bg-gray-100 border-2 border-dashed border-gray-300"}`}
+        >
+          {isSelected && (
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+      );
+    }
+
+    // 이미지 로드 실패 시: 카테고리 아이콘 폴백
+    if (imgError) {
+      return (
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg}`}>
+          <CatIcon className={`w-[22px] h-[22px] ${cat.iconColor}`} strokeWidth={1.8} />
+        </div>
+      );
+    }
+
+    // 정상: 재료 사진
+    return (
+      <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-gray-100">
+        <Image
+          src={imgUrl}
+          alt={item.ingredientName}
+          width={44}
+          height={44}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+          unoptimized
+        />
+      </div>
+    );
   }
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
 
-      {/* 삭제 버튼 (스와이프 시 노출) */}
-      <div className="absolute right-0 top-0 h-full w-16 bg-red-500 flex items-center justify-center rounded-r-2xl">
+      {/* 스와이프 삭제 버튼 */}
+      <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-red-500 to-rose-400 rounded-r-2xl flex flex-col items-center justify-center gap-1">
         <button
           onClick={handleDeleteRequest}
           aria-label="재료 삭제"
-          className="text-white text-sm font-bold"
+          className="flex flex-col items-center gap-1 text-white"
         >
-          삭제
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span className="text-[10px] font-bold">삭제</span>
         </button>
       </div>
 
       {/* 카드 본체 */}
       <div
-        className={`relative bg-white border-2 rounded-2xl shadow-sm px-4 py-4 transition-transform duration-200
-          ${isSelected ? "border-green-600" : "border-gray-200"}
-          ${isSwiped ? "-translate-x-16" : "translate-x-0"}
+        className={`relative bg-white rounded-2xl transition-all duration-200 cursor-pointer
+          ${isSelected
+            ? "border-2 border-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.12)]"
+            : "border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+          }
+          ${isSwiped ? "-translate-x-20" : "translate-x-0"}
         `}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchMove={handleTouchMove}
         onClick={handleCardTap}
       >
-        <div className="flex  justify-between gap-4">
+        <div className="px-4 pt-4 pb-3">
 
-          {/* 왼쪽: 재료명 + 수량 바 + 구매일 */}
-          <div className="flex-1 min-w-0">
-            <p className="text-lg font-bold text-gray-900 truncate">{item.name}</p>
+          {/* 상단: 썸네일 · 이름 · D-day */}
+          <div className="flex items-center gap-3">
 
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {[1, 2, 3].map((bar) => (
-                  <div
-                    key={bar}
-                    className={`h-1.5 w-7 rounded-full ${
-                      bar <= quantityLevel
-                        ? getQuantityBarColor(item.quantityStatus)
-                        : "bg-gray-200"
-                    }`}
-                  />
-                ))}
+            {renderThumbnail()}
+
+            {/* 이름 + 태그 */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-bold text-gray-900 truncate leading-snug">
+                {item.ingredientName}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                {item.categoryName ? (
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border
+                    ${cat.tagBg} ${cat.tagText} ${cat.tagBorder}`}>
+                    {item.categoryName}
+                  </span>
+                ) : null}
+                <span className="text-[11px] text-gray-400 font-medium">
+                  {item.quantity} {item.unit}
+                </span>
               </div>
-              <span className={`text-xs font-semibold ${getQuantityTextColor(item.quantityStatus)}`}>
-                {quantityLabel}
+            </div>
+
+            {/* D-day 배지 */}
+            <div className={`flex flex-col items-center justify-center
+              bg-gradient-to-br ${getDdayGradient(daysLeft)}
+              text-white rounded-xl px-3 py-2 min-w-[56px] shrink-0 shadow-sm`}>
+              <span className="text-[9px] font-bold tracking-wide opacity-85 uppercase">
+                {getDdaySubLabel(daysLeft)}
+              </span>
+              <span className="text-[13px] font-extrabold leading-tight mt-0.5">
+                {getDdayLabel(daysLeft)}
               </span>
             </div>
-
-            {/* 구매일 + 수정 버튼 행 */}
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-300">
-                최근 구매&nbsp;&nbsp;{formatDateKorean(item.purchaseDate)}
-              </p>
-
-              
-            </div>
           </div>
-          
-          <div className="flex flex-col items-end justify-between shrink-0 py-0.5">
 
-            {/* 오른쪽: D-day 배지 */}
-            <div
-            className={`min-w-[58px] h-8 px-3 rounded-xl text-base font-bold flex items-center justify-center shrink-0 ${getDdayPillClass(daysLeft)}`}
-            >
-              {getDdayText(daysLeft)}
-            </div>
+          {/* 하단: 유통기한 · 수정 버튼 */}
+          <div className="flex items-center justify-between mt-3 pl-[56px]">
+            <span className="text-[11px] text-gray-400">
+              유통기한 <span className="font-medium text-gray-500">{formattedExpiry}</span>
+            </span>
 
-            {/* 수정 버튼 — 선택 모드에선 숨김 */}
-              {!isSelectMode && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // 카드 탭 이벤트 차단
-                    onEditPress(item);
-                  }}
-                  aria-label="재료 수정"
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {/* 시안의 외부 링크 아이콘 모양 */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                    />
-                  </svg>
-                </button>
-              )}
+            {!isSelectMode && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEditPress(item); }}
+                aria-label="재료 수정"
+                className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-700 transition-colors font-medium"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                수정
+              </button>
+            )}
           </div>
-          
 
         </div>
       </div>

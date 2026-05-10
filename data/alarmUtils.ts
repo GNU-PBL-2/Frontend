@@ -1,4 +1,5 @@
-import { mockIngredients, type Ingredient } from "@/data/dummydata";
+import { mockIngredients } from "@/data/dummydata";
+import type { Ingredient } from "@/types/ingredient";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 
 export type AlarmType = "expiry_warning";
@@ -29,7 +30,7 @@ function buildExpiryWarningAlarm(ingredient: Ingredient): AlarmItem {
 
 export function generateAlarmItems(): AlarmItem[] {
   return mockIngredients
-    .filter((ingredient) => getDaysLeft(ingredient.purchaseDate, ingredient.category) === 1)
+    .filter((ingredient) => getDaysLeft(ingredient.expiryDate) === 1)
     .map(buildExpiryWarningAlarm);
 }
 

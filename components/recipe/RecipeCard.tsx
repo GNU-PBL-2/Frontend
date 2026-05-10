@@ -10,7 +10,6 @@ type RecipeCardProps = {
   onToggleFavorite?: (id: number) => void;
   onStart: () => void;
   index?: number;
-  showToast?: (message: string) => void;
 };
 
 export default function RecipeCard({
@@ -19,19 +18,12 @@ export default function RecipeCard({
   onToggleFavorite,
   onStart,
   index = 0,
-  showToast,
 }: RecipeCardProps) {
   const [imgError, setImgError] = useState(false);
 
   function handleToggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
-    const next = !isFavorite;
     onToggleFavorite?.(recipe.id);
-    showToast?.(
-      next
-        ? `${recipe.title}이/가 즐겨찾기에 추가되었습니다`
-        : `${recipe.title}이/가 즐겨찾기에서 제거되었습니다`
-    );
   }
 
   return (
