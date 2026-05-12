@@ -145,11 +145,11 @@ export default function MyPage() {
               <p className="text-sm text-gray-700">폐기 위험 재료 알림</p>
               <button
                 onClick={() => setExpiryAlert((prev) => !prev)}
-                className={`w-11 h-6 rounded-full transition-colors relative
+                className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5
                   ${expiryAlert ? "bg-green-600" : "bg-gray-200"}`}
               >
-                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                  ${expiryAlert ? "translate-x-5" : "translate-x-0.5"}`}
+                <span className={`w-5 h-5 bg-white rounded-full shadow transition-transform
+                  ${expiryAlert ? "translate-x-5" : "translate-x-0"}`}
                 />
               </button>
             </div>
@@ -157,11 +157,11 @@ export default function MyPage() {
               <p className="text-sm text-gray-700">레시피 추천 알림</p>
               <button
                 onClick={() => setRecipeAlert((prev) => !prev)}
-                className={`w-11 h-6 rounded-full transition-colors relative
+                className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5
                   ${recipeAlert ? "bg-green-600" : "bg-gray-200"}`}
               >
-                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                  ${recipeAlert ? "translate-x-5" : "translate-x-0.5"}`}
+                <span className={`w-5 h-5 bg-white rounded-full shadow transition-transform
+                  ${recipeAlert ? "translate-x-5" : "translate-x-0"}`}
                 />
               </button>
             </div>
