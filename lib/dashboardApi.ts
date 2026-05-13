@@ -50,6 +50,14 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
   return res.json();
 }
 
+export async function markNotificationRead(notificationId: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/v1/notifications/${notificationId}/read`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`읽음 처리 실패: ${res.status}`);
+}
+
 export async function fetchFridgeItems(userId: number): Promise<FridgeItem[]> {
   const res = await fetch(`${BASE_URL}/api/v1/fridge/${userId}`, {
     headers: authHeaders(),

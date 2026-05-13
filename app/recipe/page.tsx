@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
+import { fetchUserProfile } from "@/lib/dashboardApi";
+import { getToken } from "@/utils/auth";
 import { RecipeListItem, RecipeFilterType } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
 import { useToast } from "@/hooks/useToast";
+import { Sparkles } from "lucide-react";
 
 const FILTERS: RecipeFilterType[] = ["임박우선", "전체", "조리가능", "즐겨찾기"];
 const PAGE_SIZE = 10;
@@ -34,6 +37,10 @@ export default function RecipePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userPrefs, setUserPrefs] = useState<{
+    categories: string[]; tastes: string[]; allergies: string[];
+  } | null>(null);
+  const [prefEnabled, setPrefEnabled] = useState(true);
   const { toastMessage, toastVisible, showToast } = useToast();
 
   useEffect(() => {
@@ -41,15 +48,25 @@ export default function RecipePage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    fetchUserProfile()
+      .then((p) => setUserPrefs({
+        categories: p.categories ?? [],
+        tastes: p.tastes ?? [],
+        allergies: p.allergies ?? [],
+      }))
+      .catch(() => {});
+  }, []);
+
   const loadInitial = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await fetchRecipes({
-        tab: activeFilter,
-        keyword: debouncedQuery,
-        page: 0,
-        size: PAGE_SIZE,
+        tab: activeFilter, keyword: debouncedQuery, page: 0, size: PAGE_SIZE,
+        usePreference: prefEnabled,
       });
       setRecipes(data.content);
       setPage(0);
@@ -62,7 +79,7 @@ export default function RecipePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeFilter, debouncedQuery]);
+  }, [activeFilter, debouncedQuery, prefEnabled]);
 
   useEffect(() => {
     loadInitial();
@@ -74,10 +91,8 @@ export default function RecipePage() {
     try {
       const nextPage = page + 1;
       const data = await fetchRecipes({
-        tab: activeFilter,
-        keyword: debouncedQuery,
-        page: nextPage,
-        size: PAGE_SIZE,
+        tab: activeFilter, keyword: debouncedQuery, page: nextPage, size: PAGE_SIZE,
+        usePreference: prefEnabled,
       });
       setRecipes((prev) => [...prev, ...data.content]);
       setPage(nextPage);
@@ -130,56 +145,122 @@ export default function RecipePage() {
     router.push(`/recipe/${recipe.id}?favorite=${isFav}`);
   }
 
+  const hasPrefs = userPrefs !== null && (
+    userPrefs.categories.length > 0 ||
+    userPrefs.tastes.length > 0 ||
+    userPrefs.allergies.length > 0
+  );
+
+  const prefSummary = [
+    (userPrefs?.categories.length ?? 0) > 0 ? `카테고리 ${userPrefs!.categories.length}개` : null,
+    (userPrefs?.tastes.length ?? 0) > 0 ? `맛 ${userPrefs!.tastes.length}개` : null,
+    (userPrefs?.allergies.length ?? 0) > 0 ? `알레르기 ${userPrefs!.allergies.length}개 제외` : null,
+  ].filter(Boolean).join(" · ");
+
   return (
     <div className="bg-gray-50 min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white min-h-screen flex flex-col">
+      <div className="w-full max-w-sm bg-white min-h-screen">
 
-        {/* 헤더 */}
-        <div className="px-4 pt-6 pb-3">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">레시피 추천</h1>
+        {/* 스티키 헤더 */}
+        <div className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]">
+          <div className="px-4 pt-6 pb-3">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">레시피 추천</h1>
 
-          {/* 검색창 */}
-          <div className="relative mb-4">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="요리, 식재료 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-green-600 bg-gray-50 transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                ✕
-              </button>
-            )}
+            {/* 검색창 */}
+            <div className="relative mb-4">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="요리, 식재료 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-green-600 bg-gray-50 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* 필터 탭 */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200
+                    ${activeFilter === filter
+                      ? "bg-green-700 text-white shadow-sm shadow-green-200 scale-105"
+                      : "bg-gray-100 text-gray-500"
+                    }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* 필터 탭 */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {FILTERS.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200
-                  ${activeFilter === filter
-                    ? "bg-green-700 text-white shadow-sm shadow-green-200 scale-105"
-                    : "bg-gray-100 text-gray-500"
+          {/* 내 취향 필터 배너 */}
+          {hasPrefs && (
+            <div className={`mx-4 mb-3 px-4 py-3 rounded-2xl border transition-colors duration-300 ${
+              prefEnabled ? "bg-green-50 border-green-100" : "bg-gray-50 border-gray-200"
+            }`}>
+              {/* 상단: 레이블 + 상태 뱃지 + 토글 */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles
+                    className={`w-4 h-4 transition-colors duration-300 ${prefEnabled ? "text-green-600" : "text-gray-400"}`}
+                    strokeWidth={2}
+                  />
+                  <span className={`text-[13px] font-bold transition-colors duration-300 ${prefEnabled ? "text-green-800" : "text-gray-500"}`}>
+                    내 취향 필터
+                  </span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors duration-300 ${
+                    prefEnabled ? "bg-green-600 text-white" : "bg-gray-300 text-white"
+                  }`}>
+                    {prefEnabled ? "적용 중" : "꺼짐"}
+                  </span>
+                </div>
+                {/* 토글 스위치 */}
+                <button
+                  onClick={() => setPrefEnabled((v) => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${
+                    prefEnabled ? "bg-green-500" : "bg-gray-300"
                   }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+                  aria-label="취향 필터 토글"
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] ${
+                    prefEnabled ? "translate-x-5" : "translate-x-0"
+                  }`} />
+                </button>
+              </div>
+
+              {/* 하단: 요약 + 편집 */}
+              <div className="flex items-center justify-between gap-2">
+                <p className={`text-[11px] truncate flex-1 transition-colors duration-300 ${
+                  prefEnabled ? "text-green-600" : "text-gray-400"
+                }`}>
+                  {prefSummary}
+                </p>
+                <button
+                  onClick={() => router.push("/mypage")}
+                  className="shrink-0 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-[11px] font-semibold active:bg-gray-100 active:scale-95 transition-all"
+                >
+                  편집
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 레시피 목록 */}
@@ -205,9 +286,21 @@ export default function RecipePage() {
             <div className="flex flex-col items-center justify-center py-20 text-gray-400">
               <span className="text-5xl mb-3">🍽️</span>
               <p className="text-base font-medium text-gray-500">레시피가 없어요</p>
-              <p className="text-sm mt-1 text-gray-400">
-                {searchQuery ? "다른 검색어를 입력해보세요" : "재료를 냉장고에 추가해보세요"}
+              <p className="text-sm mt-1 text-gray-400 text-center px-4">
+                {searchQuery
+                  ? "다른 검색어를 입력해보세요"
+                  : hasPrefs && prefEnabled
+                    ? "선호도 설정이 너무 좁을 수 있어요"
+                    : "재료를 냉장고에 추가해보세요"}
               </p>
+              {!searchQuery && hasPrefs && prefEnabled && (
+                <button
+                  onClick={() => router.push("/mypage")}
+                  className="mt-3 px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold"
+                >
+                  마이페이지에서 수정
+                </button>
+              )}
             </div>
           ) : (
             <>
