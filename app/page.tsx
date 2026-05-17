@@ -121,14 +121,16 @@ export default function Home() {
 
   if (isLoading) return <DashboardSkeleton />;
 
-  const dangerItems = notifications.filter((n) => n.daysUntilExpiry <= 0);
-  const urgentItems = notifications.filter((n) => n.daysUntilExpiry > 0);
-  const urgentDisplayItems = [...notifications]
+  const todayExpiryItems = notifications.filter((n) => n.daysUntilExpiry === 0);
+  const urgentItems = notifications.filter(
+    (n) => n.daysUntilExpiry >= 1 && n.daysUntilExpiry <= 3
+  );
+  const urgentDisplayItems = [...urgentItems]
     .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry)
     .slice(0, 3);
 
   const STATS = [
-    { Icon: Trash2,  value: dangerItems.length,       label: "오늘 폐기 예상", color: "text-red-500",    iconColor: "text-red-400",    bg: "bg-red-50"    },
+    { Icon: Trash2,  value: todayExpiryItems.length,  label: "오늘 폐기 예상", color: "text-red-500",    iconColor: "text-red-400",    bg: "bg-red-50"    },
     { Icon: Timer,   value: urgentItems.length,        label: "D-3 임박",       color: "text-orange-400", iconColor: "text-orange-400", bg: "bg-orange-50" },
     { Icon: Package, value: totalFridgeCount ?? "—",  label: "전체 재료",      color: "text-green-600",  iconColor: "text-green-500",  bg: "bg-green-50"  },
   ];
@@ -202,7 +204,7 @@ export default function Home() {
         <div className="px-4 mt-5 space-y-4">
 
           {/* 폐기 위험 배너 */}
-          {dangerItems.length > 0 && (
+          {todayExpiryItems.length > 0 && (
             <Link href="/urgent" className="block">
               <div
                 className="rounded-2xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform"
@@ -213,10 +215,10 @@ export default function Home() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-bold text-sm leading-snug">
-                    오늘 폐기 위협 재료 {dangerItems.length}개
+                    오늘 폐기 예상 재료 {todayExpiryItems.length}개
                   </p>
                   <p className="text-orange-100 text-xs truncate mt-0.5">
-                    {dangerItems.map((i) => i.ingredientName).join(", ")} — 지금 바로 확인하세요
+                    {todayExpiryItems.map((i) => i.ingredientName).join(", ")} — 지금 바로 확인하세요
                   </p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-white/60 shrink-0" strokeWidth={2} />
@@ -247,10 +249,10 @@ export default function Home() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-gray-900">임박 재료</h2>
-                {notifications.length > 0 && (
+                <h2 className="text-base font-bold text-gray-900">유통기한 임박 재료</h2>
+                {urgentItems.length > 0 && (
                   <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-                    {notifications.length}
+                    {urgentItems.length}
                   </span>
                 )}
               </div>
@@ -264,7 +266,7 @@ export default function Home() {
                 <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center">
                   <CheckCircle2 className="w-7 h-7 text-green-500" strokeWidth={1.8} />
                 </div>
-                <p className="text-sm font-bold text-gray-700">임박 재료가 없어요!</p>
+                <p className="text-sm font-bold text-gray-700">유통기한 임박 재료가 없어요!</p>
                 <p className="text-xs text-gray-400">냉장고를 잘 관리하고 있어요 🎉</p>
               </div>
             ) : (
