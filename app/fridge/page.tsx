@@ -46,6 +46,7 @@ export default function FridgePage() {
   const [masterIngredients, setMasterIngredients] = useState<MasterIngredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
+  const [memberId, setMemberId] = useState<number | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>("전체");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,6 +67,7 @@ export default function FridgePage() {
         setLoading(false);
         return;
       }
+      setMemberId(memberId);
 
       const [fridgeResult, masterResult] = await Promise.allSettled([
         fetchFridgeList(memberId),
@@ -137,6 +139,10 @@ export default function FridgePage() {
     const qty = Number(form.quantity);
 
     if (modalMode === "add") {
+      if (!memberId) {
+        showToast("로그인이 필요합니다");
+        return;
+      }
       if (!form.selectedIngredientId) {
         alert("재료를 검색해서 선택해 주세요.");
         return;
@@ -144,6 +150,7 @@ export default function FridgePage() {
 
       try {
         const created = await createFridgeItem({
+          memberId,
           ingredientId: form.selectedIngredientId,
           quantity: qty,
           unit: form.unit,
