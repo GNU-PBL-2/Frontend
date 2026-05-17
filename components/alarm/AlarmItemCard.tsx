@@ -4,6 +4,7 @@ import type { AlarmItem } from "@/data/alarmUtils";
 
 type AlarmItemCardProps = {
   item: AlarmItem;
+  onMarkRead?: (id: string) => void;
 };
 
 function getLeftAccentClass(type: AlarmItem["type"], isRead: boolean) {
@@ -26,13 +27,24 @@ function getIcon(type: AlarmItem["type"]) {
   }
 }
 
-export default function AlarmItemCard({ item }: AlarmItemCardProps) {
+export default function AlarmItemCard({ item, onMarkRead }: AlarmItemCardProps) {
   return (
     <div
-      className={`relative rounded-2xl border shadow-sm overflow-hidden transition-colors ${
+      role="button"
+      tabIndex={0}
+      onClick={() => {
+        if (!item.isRead) onMarkRead?.(item.id);
+      }}
+      onKeyDown={(event) => {
+        if ((event.key === "Enter" || event.key === " ") && !item.isRead) {
+          event.preventDefault();
+          onMarkRead?.(item.id);
+        }
+      }}
+      className={`relative rounded-2xl border shadow-sm overflow-hidden transition-all duration-150 ${
         item.isRead
-          ? "border-gray-100 bg-gray-50"
-          : "border-gray-200 bg-white"
+          ? "border-gray-100 bg-gray-50 cursor-default"
+          : "border-gray-200 bg-white cursor-pointer hover:border-red-100 hover:bg-red-50/30 active:scale-[0.99]"
       }`}
     >
       <div
@@ -53,6 +65,14 @@ export default function AlarmItemCard({ item }: AlarmItemCardProps) {
           </div>
 
           <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <p className={`text-xs font-bold ${item.isRead ? "text-gray-300" : "text-red-400"}`}>
+                유통기한 알림
+              </p>
+              {!item.isRead && (
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" aria-label="읽지 않은 알림" />
+              )}
+            </div>
             <p
               className={`text-sm leading-6 break-words ${
                 item.isRead ? "text-gray-400" : "text-gray-900"

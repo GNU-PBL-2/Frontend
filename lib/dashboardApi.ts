@@ -1,6 +1,6 @@
 import { getToken } from "@/utils/auth";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 function authHeaders(): HeadersInit {
   const token = getToken();
@@ -48,6 +48,14 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
   });
   if (!res.ok) throw new Error(`알림 로드 실패: ${res.status}`);
   return res.json();
+}
+
+export async function markNotificationRead(notificationId: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/v1/notifications/${notificationId}/read`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`알림 읽음 처리 실패: ${res.status}`);
 }
 
 export async function fetchFridgeItems(userId: number): Promise<FridgeItem[]> {

@@ -4,7 +4,7 @@ import { getDaysLeft } from "@/utils/expiryHelpers";
 
 export type AlarmType = "expiry_warning";
 
-export type AlarmSection = "오늘" | "어제";
+export type AlarmSection = "오늘" | "어제" | "이전 알림";
 
 export type AlarmItem = {
   id: string;
@@ -38,5 +38,6 @@ export function groupAlarmItemsBySection(items: AlarmItem[]) {
   return {
     오늘: items.filter((item) => item.section === "오늘"),
     어제: items.filter((item) => item.section === "어제"),
+    "이전 알림": items.filter((item) => item.section === "이전 알림"),
   };
 }
