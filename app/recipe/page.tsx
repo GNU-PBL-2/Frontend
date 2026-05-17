@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Search, X } from "lucide-react";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { RecipeListItem, RecipeFilterType } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
@@ -135,44 +136,36 @@ export default function RecipePage() {
       <div className="w-full max-w-sm bg-white min-h-screen flex flex-col">
 
         {/* 헤더 */}
-        <div className="px-4 pt-6 pb-3">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">레시피 추천</h1>
+        <div className="bg-white px-5 pt-10 pb-5 shadow-[0_1px_0_rgba(0,0,0,0.06)] shrink-0">
+          <h1 className="text-xl font-extrabold text-gray-950 mb-4">레시피 추천</h1>
 
           {/* 검색창 */}
-          <div className="relative mb-4">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-              </svg>
-            </span>
+          <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
+            shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200 mb-4">
+            <Search className="w-4 h-4 text-gray-400 shrink-0" />
             <input
               type="text"
               placeholder="요리, 식재료 검색"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-green-600 bg-gray-50 transition-colors"
+              className="flex-1 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none bg-transparent"
             />
             {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                ✕
+              <button onClick={() => setSearchQuery("")} className="text-gray-400">
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
           {/* 필터 탭 */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {FILTERS.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200
+                className={`px-4 py-1.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all duration-200
                   ${activeFilter === filter
-                    ? "bg-green-700 text-white shadow-sm shadow-green-200 scale-105"
+                    ? "bg-green-700 text-white shadow-sm shadow-green-200"
                     : "bg-gray-100 text-gray-500"
                   }`}
               >
