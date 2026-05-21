@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Refrigerator, Plus } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import IngredientModal from "@/components/fridge/IngredientModal";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
@@ -310,8 +311,23 @@ export default function FridgePage() {
           {loading ? (
             <LoadingSkeleton />
           ) : filteredItems.length === 0 ? (
-            <div className="flex items-center justify-center h-48">
-              <p className="text-sm text-gray-400">냉장고가 비어있어요.</p>
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-20 h-20 rounded-3xl bg-green-100 flex items-center justify-center">
+                <Refrigerator className="w-10 h-10 text-green-600" strokeWidth={1.4} />
+              </div>
+              <div className="text-center">
+                <p className="text-[16px] font-bold text-gray-700">냉장고가 비어있어요</p>
+                <p className="text-[13px] text-gray-400 mt-1">재료를 추가해 보세요</p>
+              </div>
+              <button
+                onClick={handleOpenAdd}
+                className="mt-2 flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-2xl
+                  text-[14px] font-bold active:scale-95 transition-transform duration-150
+                  shadow-[0_4px_14px_rgba(22,163,74,0.35)]"
+              >
+                <Plus className="w-4 h-4" />
+                재료 추가하기
+              </button>
             </div>
           ) : (
             filteredItems.map((item) => (
