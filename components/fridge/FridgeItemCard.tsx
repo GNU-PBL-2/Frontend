@@ -167,7 +167,7 @@ export default function FridgeItemCard({
                   ))}
                 </div>
                 <span className={`text-xs font-semibold shrink-0 ${qColor.text}`}>
-                  {item.quantity} {item.unit}
+                  {["적음", "보통", "많음"].includes(item.unit) ? item.unit : `${item.quantity} ${item.unit}`}
                 </span>
               </div>
 
