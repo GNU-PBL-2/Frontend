@@ -142,8 +142,15 @@ export default function FridgePage() {
         return;
       }
 
+      const memberId = getUserIdFromToken();
+      if (!memberId) {
+        showToast("로그인이 필요합니다.");
+        return;
+      }
+
       try {
         const created = await createFridgeItem({
+          memberId,
           ingredientId: form.selectedIngredientId,
           quantity: qty,
           unit: form.unit,

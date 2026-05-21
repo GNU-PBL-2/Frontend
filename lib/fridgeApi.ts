@@ -61,6 +61,7 @@ export async function fetchMasterIngredients(): Promise<MasterIngredient[]> {
 }
 
 export async function createFridgeItem(data: {
+  memberId: number;
   ingredientId: number;
   quantity: number;
   unit: string;
