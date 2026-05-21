@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Refrigerator, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Refrigerator, Plus, ArrowRight } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import IngredientModal from "@/components/fridge/IngredientModal";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
@@ -58,6 +59,7 @@ export default function FridgePage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const isSelectMode = selectedIds.length > 0;
 
+  const router = useRouter();
   const { toastMessage, toastVisible, showToast } = useToast();
 
   useEffect(() => {
@@ -403,14 +405,15 @@ export default function FridgePage() {
         {/* 레시피 검색 배너 (편집 모드 아닐 때만) */}
         {isSelectMode && !isEditMode && (
           <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-50">
-            <div className="bg-green-700 text-white p-4 rounded-2xl flex justify-between items-center shadow-2xl">
+            <button
+              onClick={() => router.push("/recipe")}
+              className="w-full bg-green-700 text-white p-4 rounded-2xl flex justify-between items-center shadow-2xl active:scale-[0.98] transition-transform duration-150"
+            >
               <span className="text-sm font-medium">
                 {selectedIds.length}개의 재료로 레시피 검색하기
               </span>
-              <button onClick={cancelSelectMode} className="text-white/70 text-sm">
-                취소
-              </button>
-            </div>
+              <ArrowRight className="w-5 h-5 text-white/80" />
+            </button>
           </div>
         )}
 
