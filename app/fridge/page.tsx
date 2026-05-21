@@ -350,7 +350,7 @@ export default function FridgePage() {
         </div>
 
         {/* 기본: FAB 추가 버튼 */}
-        {!isSelectMode && !isEditMode && (
+        {!isSelectMode && !isEditMode && filteredItems.length > 0 && (
           <button
             onClick={handleOpenAdd}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2
