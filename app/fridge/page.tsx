@@ -349,9 +349,12 @@ export default function FridgePage() {
         {!isSelectMode && !isEditMode && (
           <button
             onClick={handleOpenAdd}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 ml-[140px] w-14 h-14 rounded-full bg-gray-200 text-3xl"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2
+              bg-green-600 text-white px-6 py-4 rounded-2xl text-[15px] font-bold
+              shadow-[0_4px_20px_rgba(22,163,74,0.4)] active:scale-95 transition-transform duration-150"
           >
-            +
+            <Plus className="w-5 h-5" />
+            재료 추가
           </button>
         )}
 
