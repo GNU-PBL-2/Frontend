@@ -95,6 +95,10 @@ export default function FridgePage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (isEditMode && items.length === 0) exitEditMode();
+  }, [items, isEditMode]);
+
   const filteredItems = useMemo(() => {
     const filtered =
       selectedCategory === "전체"
