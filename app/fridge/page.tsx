@@ -54,6 +54,7 @@ export default function FridgePage() {
   const [form, setForm] = useState<FridgeForm>(INITIAL_FRIDGE_FORM);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const isSelectMode = selectedIds.length > 0;
 
   const { toastMessage, toastVisible, showToast } = useToast();
@@ -218,6 +219,33 @@ export default function FridgePage() {
     setSelectedIds([]);
   }
 
+  function enterEditMode() {
+    setSelectedIds([]);
+    setIsEditMode(true);
+  }
+
+  function exitEditMode() {
+    setSelectedIds([]);
+    setIsEditMode(false);
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.length === 0) return;
+    const confirmed = window.confirm(`선택한 ${selectedIds.length}개를 삭제할까요?`);
+    if (!confirmed) return;
+    const snapshot = items;
+    const ids = [...selectedIds];
+    setItems((prev) => prev.filter((item) => !ids.includes(item.fridgeId)));
+    setSelectedIds([]);
+    try {
+      await Promise.all(ids.map((id) => deleteFridgeItem(id)));
+      showToast(`${ids.length}개 삭제 완료`);
+    } catch {
+      setItems(snapshot);
+      showToast("삭제에 실패했어요");
+    }
+  }
+
   if (authError) {
     return (
       <div className="bg-gray-100 min-h-screen flex justify-center">
@@ -234,12 +262,26 @@ export default function FridgePage() {
         <div className="bg-white -mx-4 -mt-4 mb-4 px-5 pt-10 pb-4 shadow-[0_1px_0_rgba(0,0,0,0.06)]">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-extrabold text-gray-950">나의 냉장고</h1>
-            {isSelectMode && (
+            {isSelectMode && !isEditMode ? (
               <button
                 onClick={cancelSelectMode}
                 className="text-sm font-medium text-gray-500 hover:text-gray-800"
               >
                 선택 취소
+              </button>
+            ) : isEditMode ? (
+              <button
+                onClick={exitEditMode}
+                className="text-sm font-semibold text-green-600 hover:text-green-700"
+              >
+                완료
+              </button>
+            ) : (
+              <button
+                onClick={enterEditMode}
+                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+              >
+                수정하기
               </button>
             )}
           </div>
@@ -276,7 +318,7 @@ export default function FridgePage() {
               <FridgeItemCard
                 key={item.fridgeId}
                 item={item}
-                isSelectMode={isSelectMode}
+                isSelectMode={isEditMode || isSelectMode}
                 isSelected={selectedIds.includes(item.fridgeId)}
                 onSelect={handleSelect}
                 onLongPress={handleLongPress}
@@ -287,8 +329,8 @@ export default function FridgePage() {
           )}
         </div>
 
-        {/* 추가 버튼 */}
-        {!isSelectMode && (
+        {/* 기본: FAB 추가 버튼 */}
+        {!isSelectMode && !isEditMode && (
           <button
             onClick={handleOpenAdd}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 ml-[140px] w-14 h-14 rounded-full bg-gray-200 text-3xl"
@@ -297,8 +339,42 @@ export default function FridgePage() {
           </button>
         )}
 
-        {/* 선택 모드 레시피 검색 배너 */}
-        {isSelectMode && (
+        {/* 편집 모드 액션 바 */}
+        {isEditMode && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-50">
+            <div className="bg-white border border-gray-200 p-3 rounded-2xl flex gap-3 items-center shadow-xl">
+              {selectedIds.length > 0 ? (
+                <button
+                  onClick={() => setSelectedIds([])}
+                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 text-sm font-bold active:scale-[0.97] transition-transform"
+                >
+                  선택 취소
+                </button>
+              ) : (
+                <button
+                  onClick={handleOpenAdd}
+                  className="flex-1 py-3 rounded-xl bg-green-600 text-white text-sm font-bold active:scale-[0.97] transition-transform"
+                >
+                  + 추가
+                </button>
+              )}
+              <button
+                onClick={handleBulkDelete}
+                disabled={selectedIds.length === 0}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold active:scale-[0.97] transition-all
+                  ${selectedIds.length > 0
+                    ? "bg-red-500 text-white"
+                    : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  }`}
+              >
+                {selectedIds.length > 0 ? `${selectedIds.length}개 삭제` : "삭제"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 레시피 검색 배너 (편집 모드 아닐 때만) */}
+        {isSelectMode && !isEditMode && (
           <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-50">
             <div className="bg-green-700 text-white p-4 rounded-2xl flex justify-between items-center shadow-2xl">
               <span className="text-sm font-medium">
