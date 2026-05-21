@@ -1,60 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Image from "next/image";
 import { FridgeItem } from "@/lib/fridgeApi";
 import { getDaysLeft } from "@/utils/expiryHelpers";
-import { Carrot, Flame, Milk, Package } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { getIngredientImageUrl } from "@/data/ingredientImages";
-
-// ── 카테고리 폴백 아이콘 테마 ─────────────────────────────────────
-
-type CategoryKey = "채소" | "육류" | "유제품" | "기타";
-
-const CATEGORY_CONFIG: Record<CategoryKey, {
-  icon: LucideIcon;
-  iconBg: string;
-  iconColor: string;
-  tagBg: string;
-  tagText: string;
-  tagBorder: string;
-}> = {
-  채소:  { icon: Carrot,  iconBg: "bg-emerald-100", iconColor: "text-emerald-600", tagBg: "bg-emerald-50",  tagText: "text-emerald-700", tagBorder: "border-emerald-200" },
-  육류:  { icon: Flame,   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    tagBg: "bg-rose-50",    tagText: "text-rose-700",    tagBorder: "border-rose-200"    },
-  유제품: { icon: Milk,   iconBg: "bg-sky-100",     iconColor: "text-sky-600",     tagBg: "bg-sky-50",     tagText: "text-sky-700",     tagBorder: "border-sky-200"     },
-  기타:  { icon: Package, iconBg: "bg-violet-100",  iconColor: "text-violet-600",  tagBg: "bg-violet-50",  tagText: "text-violet-700",  tagBorder: "border-violet-200"  },
-};
-
-const DEFAULT_CATEGORY = {
-  icon: Package,
-  iconBg: "bg-gray-100", iconColor: "text-gray-500",
-  tagBg: "bg-gray-50",   tagText: "text-gray-600", tagBorder: "border-gray-200",
-};
-
-// ── D-day 헬퍼 ───────────────────────────────────────────────────
-
-function getDdayLabel(daysLeft: number) {
-  if (daysLeft < 0) return `D+${Math.abs(daysLeft)}`;
-  if (daysLeft === 0) return "D-day";
-  return `D-${daysLeft}`;
-}
-
-function getDdayGradient(daysLeft: number) {
-  if (daysLeft < 0)  return "from-gray-400 to-gray-500";
-  if (daysLeft <= 2) return "from-red-500 to-rose-600";
-  if (daysLeft <= 7) return "from-amber-400 to-orange-500";
-  return "from-emerald-400 to-green-600";
-}
-
-function getDdaySubLabel(daysLeft: number) {
-  if (daysLeft < 0) return "경과";
-  if (daysLeft <= 2) return "위험";
-  if (daysLeft <= 7) return "주의";
-  return "안전";
-}
-
-// ── Props ────────────────────────────────────────────────────────
 
 type FridgeItemCardProps = {
   item: FridgeItem;
@@ -66,7 +14,39 @@ type FridgeItemCardProps = {
   onDelete: (fridgeId: number) => void;
 };
 
-// ── 컴포넌트 ─────────────────────────────────────────────────────
+function formatKoreanDate(dateStr: string) {
+  const [year, month, day] = dateStr.split("-");
+  return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+}
+
+function getDdayBadge(daysLeft: number) {
+  if (daysLeft < 0)  return "bg-gray-400";
+  if (daysLeft <= 2) return "bg-red-500";
+  if (daysLeft <= 7) return "bg-orange-500";
+  return "bg-green-500";
+}
+
+function getDdayLabel(daysLeft: number) {
+  if (daysLeft < 0)  return `D+${Math.abs(daysLeft)}`;
+  if (daysLeft === 0) return "D-day";
+  return `D-${daysLeft}`;
+}
+
+// 수량 레벨 1=적음(빨강) 2=보통(주황) 3=많음(초록)
+function getQuantityLevel(quantity: number, unit: string): 1 | 2 | 3 {
+  if (unit === "적음") return 1;
+  if (unit === "보통") return 2;
+  if (unit === "많음") return 3;
+  if (quantity <= 1) return 1;
+  if (quantity <= 5) return 2;
+  return 3;
+}
+
+const QUANTITY_COLOR: Record<1 | 2 | 3, { fill: string; text: string }> = {
+  1: { fill: "bg-red-400",    text: "text-red-400"    },
+  2: { fill: "bg-orange-400", text: "text-orange-400" },
+  3: { fill: "bg-green-500",  text: "text-green-500"  },
+};
 
 export default function FridgeItemCard({
   item,
@@ -78,15 +58,13 @@ export default function FridgeItemCard({
   onDelete,
 }: FridgeItemCardProps) {
   const [isSwiped, setIsSwiped] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const touchStartX = useRef<number>(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const daysLeft = getDaysLeft(item.expiryDate);
-  const cat = CATEGORY_CONFIG[item.categoryName as CategoryKey] ?? DEFAULT_CATEGORY;
-  const CatIcon = cat.icon;
-  const imgUrl = getIngredientImageUrl(item.ingredientName, item.categoryName);
-  const formattedExpiry = item.expiryDate.replace(/-/g, ".");
+  const badgeBg = getDdayBadge(daysLeft);
+  const qLevel = getQuantityLevel(item.quantity, item.unit);
+  const qColor = QUANTITY_COLOR[qLevel];
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -115,56 +93,13 @@ export default function FridgeItemCard({
   function handleCardTap() {
     if (isSwiped) { setIsSwiped(false); return; }
     if (isSelectMode) onSelect(item.fridgeId);
+    else onEditPress(item);
   }
 
   function handleDeleteRequest() {
     const confirmed = window.confirm(`"${item.ingredientName}"을(를) 삭제할까요?`);
     if (confirmed) onDelete(item.fridgeId);
     setIsSwiped(false);
-  }
-
-  // ── 좌측 썸네일 렌더링 ──────────────────────────────────────────
-
-  function renderThumbnail() {
-    // 선택 모드: 체크박스
-    if (isSelectMode) {
-      return (
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors
-          ${isSelected ? "bg-green-500" : "bg-gray-100 border-2 border-dashed border-gray-300"}`}
-        >
-          {isSelected && (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          )}
-        </div>
-      );
-    }
-
-    // 이미지 로드 실패 시: 카테고리 아이콘 폴백
-    if (imgError) {
-      return (
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg}`}>
-          <CatIcon className={`w-[22px] h-[22px] ${cat.iconColor}`} strokeWidth={1.8} />
-        </div>
-      );
-    }
-
-    // 정상: 재료 사진
-    return (
-      <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-gray-100">
-        <Image
-          src={imgUrl}
-          alt={item.ingredientName}
-          width={44}
-          height={44}
-          className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
-          unoptimized
-        />
-      </div>
-    );
   }
 
   return (
@@ -200,66 +135,54 @@ export default function FridgeItemCard({
         onTouchMove={handleTouchMove}
         onClick={handleCardTap}
       >
-        <div className="px-4 pt-4 pb-3">
-
-          {/* 상단: 썸네일 · 이름 · D-day */}
+        <div className="px-4 py-4">
           <div className="flex items-center gap-3">
 
-            {renderThumbnail()}
+            {/* 선택 모드 체크박스 */}
+            {isSelectMode && (
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors
+                ${isSelected ? "bg-green-500" : "border-2 border-gray-300"}`}
+              >
+                {isSelected && (
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+            )}
 
-            {/* 이름 + 태그 */}
+            {/* 메인 콘텐츠 */}
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-bold text-gray-900 truncate leading-snug">
-                {item.ingredientName}
-              </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                {item.categoryName ? (
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border
-                    ${cat.tagBg} ${cat.tagText} ${cat.tagBorder}`}>
-                    {item.categoryName}
-                  </span>
-                ) : null}
-                <span className="text-[11px] text-gray-400 font-medium">
+              <p className="text-[16px] font-bold text-gray-900">{item.ingredientName}</p>
+
+              {/* 세그먼트 바 + 수량 */}
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-1">
+                  {([1, 2, 3] as const).map((seg) => (
+                    <div
+                      key={seg}
+                      className={`w-7 h-1.5 rounded-full ${seg <= qLevel ? qColor.fill : "bg-gray-100"}`}
+                    />
+                  ))}
+                </div>
+                <span className={`text-xs font-semibold shrink-0 ${qColor.text}`}>
                   {item.quantity} {item.unit}
                 </span>
               </div>
+
+              {/* 유통기한 */}
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                유통기한 {formatKoreanDate(item.expiryDate)}
+              </p>
             </div>
 
             {/* D-day 배지 */}
-            <div className={`flex flex-col items-center justify-center
-              bg-gradient-to-br ${getDdayGradient(daysLeft)}
-              text-white rounded-xl px-3 py-2 min-w-[56px] shrink-0 shadow-sm`}>
-              <span className="text-[9px] font-bold tracking-wide opacity-85 uppercase">
-                {getDdaySubLabel(daysLeft)}
-              </span>
-              <span className="text-[13px] font-extrabold leading-tight mt-0.5">
-                {getDdayLabel(daysLeft)}
-              </span>
+            <div className={`ml-2 px-3 py-1.5 rounded-full ${badgeBg} shrink-0`}>
+              <span className="text-xs font-bold text-white">{getDdayLabel(daysLeft)}</span>
             </div>
+
           </div>
-
-          {/* 하단: 유통기한 · 수정 버튼 */}
-          <div className="flex items-center justify-between mt-3 pl-[56px]">
-            <span className="text-[11px] text-gray-400">
-              유통기한 <span className="font-medium text-gray-500">{formattedExpiry}</span>
-            </span>
-
-            {!isSelectMode && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onEditPress(item); }}
-                aria-label="재료 수정"
-                className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-700 transition-colors font-medium"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                수정
-              </button>
-            )}
-          </div>
-
         </div>
       </div>
     </div>
