@@ -24,6 +24,8 @@ function CardSkeleton() {
 
 export default function RecipePage() {
   const router = useRouter();
+  // TODO: useSearchParams()로 ingredientIds 쿼리파라미터를 읽어 fetchRecipes에 전달
+  //       냉장고 페이지에서 선택한 재료 ID로 필터링하려면 백엔드 API 변경도 병행 필요
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");

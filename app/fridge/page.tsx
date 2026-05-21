@@ -405,6 +405,8 @@ export default function FridgePage() {
         {/* 레시피 검색 배너 (편집 모드 아닐 때만) */}
         {isSelectMode && !isEditMode && (
           <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-50">
+            {/* TODO: selectedIds(fridgeId) → ingredientId 변환 후 쿼리파라미터로 전달 (예: /recipe?ingredientIds=1,2,3)
+                  백엔드 RecipeSearchRequest에 ingredientIds 파라미터 추가 필요 */}
             <button
               onClick={() => router.push("/recipe")}
               className="w-full bg-green-700 text-white p-4 rounded-2xl flex justify-between items-center shadow-2xl active:scale-[0.98] transition-transform duration-150"
