@@ -229,20 +229,20 @@ export default function FridgePage() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white min-h-screen p-4 relative">
-        <div className="mt-4 mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">
-            나의 <span className="text-blue-600">냉장고</span>
-          </h1>
-          {isSelectMode && (
-            <button
-              onClick={cancelSelectMode}
-              className="text-sm font-medium text-gray-500 hover:text-gray-800"
-            >
-              선택 취소
-            </button>
-          )}
+    <div className="bg-gray-50 min-h-screen flex justify-center">
+      <div className="w-full max-w-sm bg-gray-50 min-h-screen p-4 relative">
+        <div className="bg-white -mx-4 -mt-4 mb-4 px-5 pt-10 pb-4 shadow-[0_1px_0_rgba(0,0,0,0.06)]">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-extrabold text-gray-950">나의 냉장고</h1>
+            {isSelectMode && (
+              <button
+                onClick={cancelSelectMode}
+                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+              >
+                선택 취소
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
