@@ -225,6 +225,10 @@ export default function FridgePage() {
   }
 
   function enterEditMode() {
+    if (items.length === 0) {
+      showToast("수정할 재료가 없어요. 먼저 재료를 추가해 주세요.");
+      return;
+    }
     setSelectedIds([]);
     setIsEditMode(true);
   }
