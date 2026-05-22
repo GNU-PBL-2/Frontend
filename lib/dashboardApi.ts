@@ -51,11 +51,18 @@ export async function fetchNotifications(): Promise<NotificationItem[]> {
 }
 
 export async function markNotificationRead(notificationId: number): Promise<void> {
-  const res = await fetch(`${BASE_URL}/api/v1/notifications/${notificationId}/read`, {
-    method: "PATCH",
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`읽음 처리 실패: ${res.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/notifications/${notificationId}/read`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`읽음 처리 실패: ${res.status}`);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function fetchFridgeItems(userId: number): Promise<FridgeItem[]> {

@@ -64,28 +64,29 @@ export default function AlarmPage() {
   async function handleMarkAllRead() {
     if (marking || unreadCount === 0) return;
     setMarking(true);
+    try {
+      const unreadIds = alarmItems
+        .filter((item) => !item.isRead)
+        .map((item) => Number(item.id));
 
-    const unreadIds = alarmItems
-      .filter((item) => !item.isRead)
-      .map((item) => Number(item.id));
-
-    const results = await Promise.allSettled(
-      unreadIds.map((id) => markNotificationRead(id))
-    );
-
-    const succeededIds = new Set(
-      unreadIds.filter((_, i) => results[i].status === "fulfilled")
-    );
-
-    if (succeededIds.size > 0) {
-      setAlarmItems((prev) =>
-        prev.map((item) =>
-          succeededIds.has(Number(item.id)) ? { ...item, isRead: true } : item
-        )
+      const results = await Promise.allSettled(
+        unreadIds.map((id) => markNotificationRead(id))
       );
-    }
 
-    setMarking(false);
+      const succeededIds = new Set(
+        unreadIds.filter((_, i) => results[i].status === "fulfilled")
+      );
+
+      if (succeededIds.size > 0) {
+        setAlarmItems((prev) =>
+          prev.map((item) =>
+            succeededIds.has(Number(item.id)) ? { ...item, isRead: true } : item
+          )
+        );
+      }
+    } finally {
+      setMarking(false);
+    }
   }
 
   if (loading) {

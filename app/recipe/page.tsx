@@ -60,13 +60,19 @@ export default function RecipePage() {
       .catch(() => {});
   }, []);
 
+  const hasPrefs = userPrefs !== null && (
+    userPrefs.categories.length > 0 ||
+    userPrefs.tastes.length > 0 ||
+    userPrefs.allergies.length > 0
+  );
+
   const loadInitial = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await fetchRecipes({
         tab: activeFilter, keyword: debouncedQuery, page: 0, size: PAGE_SIZE,
-        usePreference: prefEnabled,
+        usePreference: hasPrefs && prefEnabled,
       });
       setRecipes(data.content);
       setPage(0);
@@ -79,7 +85,7 @@ export default function RecipePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeFilter, debouncedQuery, prefEnabled]);
+  }, [activeFilter, debouncedQuery, prefEnabled, hasPrefs]);
 
   useEffect(() => {
     loadInitial();
@@ -92,7 +98,7 @@ export default function RecipePage() {
       const nextPage = page + 1;
       const data = await fetchRecipes({
         tab: activeFilter, keyword: debouncedQuery, page: nextPage, size: PAGE_SIZE,
-        usePreference: prefEnabled,
+        usePreference: hasPrefs && prefEnabled,
       });
       setRecipes((prev) => [...prev, ...data.content]);
       setPage(nextPage);
@@ -144,12 +150,6 @@ export default function RecipePage() {
     const isFav = favoriteIds.has(recipe.id);
     router.push(`/recipe/${recipe.id}?favorite=${isFav}`);
   }
-
-  const hasPrefs = userPrefs !== null && (
-    userPrefs.categories.length > 0 ||
-    userPrefs.tastes.length > 0 ||
-    userPrefs.allergies.length > 0
-  );
 
   const prefSummary = [
     (userPrefs?.categories.length ?? 0) > 0 ? `카테고리 ${userPrefs!.categories.length}개` : null,

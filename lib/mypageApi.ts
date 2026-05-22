@@ -30,17 +30,35 @@ const ALLERGY_IDS: Record<string, number> = {
   "조개류(굴,전복,홍합)": 18, 잣: 19, 아몬드: 20, 캐슈넛: 21, 참깨: 22,
 };
 
-function toIds(names: string[], map: Record<string, number>): number[] {
+const CATEGORY_ALIASES: Record<string, string> = {
+  퓨전: "동남아식",
+  디저트: "베이커리",
+};
+
+const TASTE_ALIASES: Record<string, string> = {
+  맵게: "매운맛",
+};
+
+function toIds(
+  names: string[],
+  map: Record<string, number>,
+  aliases: Record<string, string> = {}
+): number[] {
   return names.flatMap((name) => {
-    const id = map[name];
-    return id !== undefined ? [id] : [];
+    const resolved = aliases[name] ?? name;
+    const id = map[resolved];
+    if (id === undefined) {
+      console.warn(`[mypageApi] 알 수 없는 레이블: "${name}"`);
+      return [];
+    }
+    return [id];
   });
 }
 
 export async function updateUserPreferences(data: UserPreferences): Promise<void> {
   const body = {
-    categories: toIds(data.categories, CATEGORY_IDS),
-    tastes: toIds(data.tastes, TASTE_IDS),
+    categories: toIds(data.categories, CATEGORY_IDS, CATEGORY_ALIASES),
+    tastes: toIds(data.tastes, TASTE_IDS, TASTE_ALIASES),
     allergies: toIds(data.allergies, ALLERGY_IDS),
   };
   const res = await fetch(`${BASE_URL}/api/v1/users/onboard`, {
