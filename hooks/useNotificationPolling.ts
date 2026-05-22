@@ -55,8 +55,6 @@ async function checkAndNotify() {
 
 export function useNotificationPolling() {
   useEffect(() => {
-    if (!getToken()) return;
-
     checkAndNotify();
     const id = setInterval(checkAndNotify, POLL_INTERVAL);
     return () => clearInterval(id);
