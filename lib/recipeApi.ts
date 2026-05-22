@@ -20,12 +20,14 @@ export async function fetchRecipes(params: {
   keyword?: string;
   page?: number;
   size?: number;
+  usePreference?: boolean;
 }): Promise<RecipePage> {
   const query = new URLSearchParams();
   query.set("tab", TAB_MAP[params.tab ?? "전체"]);
   if (params.keyword?.trim()) query.set("keyword", params.keyword.trim());
   query.set("page", String(params.page ?? 0));
   query.set("size", String(params.size ?? 10));
+  if (params.usePreference === false) query.set("usePreference", "false");
 
   const res = await fetch(`${BASE_URL}/api/v1/recipes?${query}`, {
     headers: authHeaders(),
