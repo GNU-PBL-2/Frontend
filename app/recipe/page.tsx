@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, X, Sparkles } from "lucide-react";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { fetchUserProfile } from "@/lib/dashboardApi";
 import { getToken } from "@/utils/auth";
@@ -11,7 +11,6 @@ import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
 import { useToast } from "@/hooks/useToast";
-import { Sparkles } from "lucide-react";
 
 const FILTERS: RecipeFilterType[] = ["임박우선", "전체", "조리가능", "즐겨찾기"];
 const PAGE_SIZE = 10;
@@ -27,8 +26,6 @@ function CardSkeleton() {
 
 export default function RecipePage() {
   const router = useRouter();
-  // TODO: useSearchParams()로 ingredientIds 쿼리파라미터를 읽어 fetchRecipes에 전달
-  //       냉장고 페이지에서 선택한 재료 ID로 필터링하려면 백엔드 API 변경도 병행 필요
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -162,40 +159,73 @@ export default function RecipePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white min-h-screen flex flex-col">
+      <div className="w-full max-w-sm bg-white min-h-screen">
 
-        {/* 헤더 */}
-        <div className="bg-white px-5 pt-10 pb-5 shadow-[0_1px_0_rgba(0,0,0,0.06)] shrink-0">
-          <h1 className="text-xl font-extrabold text-gray-950 mb-4">레시피 추천</h1>
+        {/* 스티키 헤더 */}
+        <div className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]">
+          <div className="px-4 pt-6 pb-3">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">레시피 추천</h1>
 
-          {/* 검색창 */}
-          <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
-            shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200 mb-4">
-            <Search className="w-4 h-4 text-gray-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="요리, 식재료 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none bg-transparent"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="text-gray-400">
-                <X className="w-4 h-4" />
-              </button>
-            )}
+            {/* 검색창 */}
+            <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
+              shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200 mb-4">
+              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="요리, 식재료 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none bg-transparent"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="text-gray-400">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* 필터 탭 */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200
+                    ${activeFilter === filter
+                      ? "bg-green-700 text-white shadow-sm shadow-green-200 scale-105"
+                      : "bg-gray-100 text-gray-500"
+                    }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* 필터 탭 */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {FILTERS.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all duration-200
-                  ${activeFilter === filter
-                    ? "bg-green-700 text-white shadow-sm shadow-green-200"
-                    : "bg-gray-100 text-gray-500"
+          {/* 내 취향 필터 배너 */}
+          {hasPrefs && (
+            <div className={`mx-4 mb-3 px-4 py-3 rounded-2xl border transition-colors duration-300 ${
+              prefEnabled ? "bg-green-50 border-green-100" : "bg-gray-50 border-gray-200"
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles
+                    className={`w-4 h-4 transition-colors duration-300 ${prefEnabled ? "text-green-600" : "text-gray-400"}`}
+                    strokeWidth={2}
+                  />
+                  <span className={`text-[13px] font-bold transition-colors duration-300 ${prefEnabled ? "text-green-800" : "text-gray-500"}`}>
+                    내 취향 필터
+                  </span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors duration-300 ${
+                    prefEnabled ? "bg-green-600 text-white" : "bg-gray-300 text-white"
+                  }`}>
+                    {prefEnabled ? "적용 중" : "꺼짐"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPrefEnabled((v) => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${
+                    prefEnabled ? "bg-green-500" : "bg-gray-300"
                   }`}
                   aria-label="취향 필터 토글"
                 >
@@ -205,7 +235,6 @@ export default function RecipePage() {
                 </button>
               </div>
 
-              {/* 하단: 요약 + 편집 */}
               <div className="flex items-center justify-between gap-2">
                 <p className={`text-[11px] truncate flex-1 transition-colors duration-300 ${
                   prefEnabled ? "text-green-600" : "text-gray-400"
