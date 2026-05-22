@@ -52,6 +52,12 @@ function KakaoCallbackContent() {
         const { accessToken } = (await loginRes.json()) as { accessToken: string };
         setToken(accessToken);
 
+        // 로그인 직후 브라우저 알림 권한 요청
+        if (typeof window !== "undefined" && "Notification" in window &&
+            Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+
         // 기존 유저는 선호도가 있으면 홈으로, 신규 유저는 설정 페이지로
         const userRes = await fetch(`${API_URL}/api/v1/users`, {
           headers: { Authorization: `Bearer ${accessToken}` },

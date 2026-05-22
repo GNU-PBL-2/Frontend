@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import AlarmItemCard from "@/components/alarm/AlarmItemCard";
 import { type AlarmItem } from "@/data/alarmUtils";
-import { fetchNotifications, type NotificationItem } from "@/lib/dashboardApi";
+import { fetchNotifications, markNotificationRead, type NotificationItem } from "@/lib/dashboardApi";
 
 function toAlarmItem(n: NotificationItem): AlarmItem {
   const createdAt = new Date(n.createdAt);
@@ -59,10 +59,34 @@ export default function AlarmPage() {
   };
 
   const unreadCount = alarmItems.filter((item) => !item.isRead).length;
+  const [marking, setMarking] = useState(false);
 
-  const handleMarkAllRead = () => {
-    setAlarmItems((prev) => prev.map((item) => ({ ...item, isRead: true })));
-  };
+  async function handleMarkAllRead() {
+    if (marking || unreadCount === 0) return;
+    setMarking(true);
+
+    const unreadIds = alarmItems
+      .filter((item) => !item.isRead)
+      .map((item) => Number(item.id));
+
+    const results = await Promise.allSettled(
+      unreadIds.map((id) => markNotificationRead(id))
+    );
+
+    const succeededIds = new Set(
+      unreadIds.filter((_, i) => results[i].status === "fulfilled")
+    );
+
+    if (succeededIds.size > 0) {
+      setAlarmItems((prev) =>
+        prev.map((item) =>
+          succeededIds.has(Number(item.id)) ? { ...item, isRead: true } : item
+        )
+      );
+    }
+
+    setMarking(false);
+  }
 
   if (loading) {
     return (
@@ -81,10 +105,10 @@ export default function AlarmPage() {
           <h1 className="text-2xl font-bold text-gray-900">알림</h1>
           <button
             onClick={handleMarkAllRead}
-            className="text-sm font-medium text-blue-500 disabled:text-gray-300"
-            disabled={unreadCount === 0}
+            className="text-sm font-medium text-blue-500 disabled:text-gray-300 transition-opacity"
+            disabled={unreadCount === 0 || marking}
           >
-            모두 읽기
+            {marking ? "처리 중..." : "모두 읽기"}
           </button>
         </div>
 
