@@ -99,6 +99,7 @@ export default function LoginSetupPage() {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedTastes, setSelectedTastes] = useState<number[]>([]);
   const [selectedAllergies, setSelectedAllergies] = useState<number[]>([]);
@@ -140,14 +141,19 @@ export default function LoginSetupPage() {
       return;
     }
 
+    setSubmitError(null);
     setIsSubmitting(true);
     try {
       const token = getToken();
+      if (!token) {
+        setSubmitError("로그인 정보가 없어요. 다시 로그인한 뒤 저장해 주세요.");
+        return;
+      }
       const res = await fetch(`${API_URL}/api/v1/users/onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           categories: selectedCategories,
@@ -156,12 +162,12 @@ export default function LoginSetupPage() {
         }),
       });
       if (!res.ok) throw new Error("Onboard failed");
+      router.push("/login/complete");
     } catch {
-      // 실패해도 완료 화면으로 진행
+      setSubmitError("선호도 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }
-    router.push("/login/complete");
   };
 
   return (
@@ -221,6 +227,11 @@ export default function LoginSetupPage() {
           >
             {isSubmitting ? "저장 중..." : isLastStep ? "완료" : "다음"}
           </button>
+          {submitError && (
+            <p role="alert" className="text-center text-sm font-medium text-[#d45c68]">
+              {submitError}
+            </p>
+          )}
           {!isLastStep && (
             <button
               type="button"
