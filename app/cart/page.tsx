@@ -4,6 +4,9 @@ import React, { useState, useRef, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
 import { ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator, Trash2, X } from "lucide-react";
 import { fetchMasterIngredients, createFridgeItem, type MasterIngredient } from "@/lib/fridgeApi";
+import { getUserIdFromToken } from "@/utils/auth";
+import { useToast } from "@/hooks/useToast";
+import Toast from "@/components/Toast";
 
 // ── 애니메이션 ────────────────────────────────────────────────────
 const STYLES = `
@@ -202,6 +205,7 @@ export default function CartPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [masterIngredients, setMasterIngredients] = useState<MasterIngredient[]>([]);
   const [addingToFridge, setAddingToFridge] = useState(false);
+  const { toastMessage, toastVisible, showToast } = useToast();
 
   const checkedItems = items.filter((i) => i.checked);
   const checkedCount = checkedItems.length;
@@ -247,6 +251,12 @@ export default function CartPage() {
 
   async function handleAddToFridge() {
     if (checkedCount === 0 || addingToFridge) return;
+    const memberId = getUserIdFromToken();
+    if (!memberId) {
+      showToast("로그인이 필요합니다");
+      return;
+    }
+
     setAddingToFridge(true);
 
     const defaultExpiry = (() => {
@@ -257,12 +267,17 @@ export default function CartPage() {
 
     const nameToIngredient = new Map(masterIngredients.map((m) => [m.name, m]));
     const succeeded: number[] = [];
+    const missing: string[] = [];
 
     await Promise.allSettled(
       checkedItems.map(async (cartItem) => {
         const master = nameToIngredient.get(cartItem.name);
-        if (!master) return;
+        if (!master) {
+          missing.push(cartItem.name);
+          return;
+        }
         await createFridgeItem({
+          memberId,
           ingredientId: master.ingredientId,
           quantity: cartItem.quantity,
           unit: "개",
@@ -274,6 +289,11 @@ export default function CartPage() {
 
     if (succeeded.length > 0) {
       setItems((prev) => prev.filter((i) => !succeeded.includes(i.id)));
+      showToast(`${succeeded.length}개 품목을 냉장고에 추가했어요`);
+    } else if (missing.length > 0) {
+      showToast("등록된 재료명만 냉장고에 추가할 수 있어요");
+    } else {
+      showToast("냉장고 추가에 실패했어요");
     }
     setAddingToFridge(false);
   }
@@ -488,13 +508,14 @@ export default function CartPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleAddToFridge}
+                  disabled={addingToFridge}
                   className="flex-1 flex items-center justify-center gap-1.5 py-3.5 rounded-2xl
                     bg-green-600 text-white text-[13px] font-bold
                     active:scale-[0.97] transition-transform duration-150
-                    shadow-[0_4px_14px_rgba(22,163,74,0.3)]"
+                    shadow-[0_4px_14px_rgba(22,163,74,0.3)] disabled:opacity-60"
                 >
                   <Refrigerator className="w-4 h-4" />
-                  냉장고에 추가
+                  {addingToFridge ? "추가 중..." : "냉장고에 추가"}
                 </button>
                 <button
                   onClick={handleDeleteChecked}
@@ -521,6 +542,7 @@ export default function CartPage() {
           </div>
 
           <BottomNav />
+          <Toast message={toastMessage} visible={toastVisible} />
         </div>
       </div>
     </>

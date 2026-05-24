@@ -39,22 +39,32 @@ function KakaoCallbackContent() {
       return;
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+
     (async () => {
       try {
         const loginRes = await fetch(`${API_URL}/api/v1/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code, socialProvider: "KAKAO", userRole: "USER" }),
+          signal: controller.signal,
         });
 
         if (!loginRes.ok) throw new Error("Login failed");
 
         const { accessToken } = (await loginRes.json()) as { accessToken: string };
-        setToken(accessToken);
+
+        // 로그인 직후 브라우저 알림 권한 요청
+        if (typeof window !== "undefined" && "Notification" in window &&
+            Notification.permission === "default") {
+          Notification.requestPermission();
+        }
 
         // 기존 유저는 선호도가 있으면 홈으로, 신규 유저는 설정 페이지로
         const userRes = await fetch(`${API_URL}/api/v1/users`, {
           headers: { Authorization: `Bearer ${accessToken}` },
+          signal: controller.signal,
         });
 
         if (!userRes.ok) throw new Error("User fetch failed");
@@ -65,16 +75,25 @@ function KakaoCallbackContent() {
           allergies: string[];
         };
 
+        // 모든 확인 완료 후 토큰 저장
+        setToken(accessToken);
+
         const hasPreferences =
           user.categories.length > 0 ||
           user.tastes.length > 0 ||
           user.allergies.length > 0;
 
         router.replace(hasPreferences ? "/" : "/login/setup");
-      } catch {
-        router.replace("/login");
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          router.replace("/login");
+        }
+      } finally {
+        clearTimeout(timeout);
       }
     })();
+
+    return () => controller.abort();
   }, [router, searchParams]);
 
   return <LoadingScreen />;
