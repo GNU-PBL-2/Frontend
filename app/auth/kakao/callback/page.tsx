@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setToken } from "@/utils/auth";
 
@@ -24,10 +25,32 @@ function LoadingScreen() {
   );
 }
 
+function LoginErrorScreen({ message }: { message: string }) {
+  return (
+    <main className="min-h-screen bg-[#f2f4f7] text-[#111111]">
+      <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col items-center justify-center bg-white px-6 py-10 text-center">
+        <h1 className="text-2xl font-extrabold tracking-[-0.04em]">
+          로그인에 실패했어요
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-[#6f7682]">
+          {message}
+        </p>
+        <Link
+          href="/login"
+          className="mt-8 w-full rounded-2xl bg-[#118d3f] px-5 py-4 text-sm font-bold text-white shadow-[0_12px_24px_rgba(17,141,63,0.18)]"
+        >
+          로그인 화면으로 돌아가기
+        </Link>
+      </div>
+    </main>
+  );
+}
+
 function KakaoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const called = useRef(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (called.current) return;
@@ -35,12 +58,16 @@ function KakaoCallbackContent() {
 
     const code = searchParams.get("code");
     if (!code) {
-      router.replace("/login");
+      setErrorMessage("카카오 로그인 정보를 확인할 수 없어요. 다시 로그인해 주세요.");
       return;
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15_000);
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 15_000);
 
     (async () => {
       try {
@@ -51,7 +78,9 @@ function KakaoCallbackContent() {
           signal: controller.signal,
         });
 
-        if (!loginRes.ok) throw new Error("Login failed");
+        if (!loginRes.ok) {
+          throw new Error("카카오 인증을 완료하지 못했어요. 다시 로그인해 주세요.");
+        }
 
         const { accessToken } = (await loginRes.json()) as { accessToken: string };
 
@@ -67,7 +96,9 @@ function KakaoCallbackContent() {
           signal: controller.signal,
         });
 
-        if (!userRes.ok) throw new Error("User fetch failed");
+        if (!userRes.ok) {
+          throw new Error("사용자 정보를 불러오지 못했어요. 다시 로그인해 주세요.");
+        }
 
         const user = (await userRes.json()) as {
           categories: string[];
@@ -85,9 +116,19 @@ function KakaoCallbackContent() {
 
         router.replace(hasPreferences ? "/" : "/login/setup");
       } catch (err) {
-        if (err instanceof Error && err.name !== "AbortError") {
-          router.replace("/login");
+        if (err instanceof Error && err.name === "AbortError") {
+          if (timedOut) {
+            setErrorMessage("로그인 확인 시간이 초과되었어요. 다시 시도해 주세요.");
+          }
+          return;
         }
+        const knownMessage =
+          err instanceof Error && err.message.endsWith("다시 로그인해 주세요.");
+        setErrorMessage(
+          knownMessage
+            ? err.message
+            : "로그인 서버에 연결하지 못했어요. 잠시 후 다시 로그인해 주세요."
+        );
       } finally {
         clearTimeout(timeout);
       }
@@ -96,7 +137,7 @@ function KakaoCallbackContent() {
     return () => controller.abort();
   }, [router, searchParams]);
 
-  return <LoadingScreen />;
+  return errorMessage ? <LoginErrorScreen message={errorMessage} /> : <LoadingScreen />;
 }
 
 export default function KakaoCallbackPage() {
