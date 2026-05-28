@@ -27,12 +27,11 @@ function getDdayBadge(daysLeft: number) {
 }
 
 function getDdayLabel(daysLeft: number) {
-  if (daysLeft < 0)  return `D+${Math.abs(daysLeft)}`;
+  if (daysLeft < 0)   return `D+${Math.abs(daysLeft)}`;
   if (daysLeft === 0) return "D-day";
   return `D-${daysLeft}`;
 }
 
-// 수량 레벨 1=적음(빨강) 2=보통(주황) 3=많음(초록)
 function getQuantityLevel(quantity: number, unit: string): 1 | 2 | 3 {
   if (unit === "적음") return 1;
   if (unit === "보통") return 2;
@@ -62,9 +61,9 @@ export default function FridgeItemCard({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const daysLeft = getDaysLeft(item.expiryDate);
-  const badgeBg = getDdayBadge(daysLeft);
-  const qLevel = getQuantityLevel(item.quantity, item.unit);
-  const qColor = QUANTITY_COLOR[qLevel];
+  const badgeBg  = getDdayBadge(daysLeft);
+  const qLevel   = getQuantityLevel(item.quantity, item.unit);
+  const qColor   = QUANTITY_COLOR[qLevel];
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -74,20 +73,14 @@ export default function FridgeItemCard({
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 60) setIsSwiped(true);
+    if (diff > 60)  setIsSwiped(true);
     if (diff < -30) setIsSwiped(false);
   }
 
   function handleTouchMove() {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
   }
 
   function handleCardTap() {
@@ -107,11 +100,7 @@ export default function FridgeItemCard({
 
       {/* 스와이프 삭제 버튼 */}
       <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-red-500 to-rose-400 rounded-r-2xl flex flex-col items-center justify-center gap-1">
-        <button
-          onClick={handleDeleteRequest}
-          aria-label="재료 삭제"
-          className="flex flex-col items-center gap-1 text-white"
-        >
+        <button onClick={handleDeleteRequest} aria-label="재료 삭제" className="flex flex-col items-center gap-1 text-white">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none"
             viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round"
@@ -141,8 +130,7 @@ export default function FridgeItemCard({
             {/* 선택 모드 체크박스 */}
             {isSelectMode && (
               <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors
-                ${isSelected ? "bg-green-500" : "border-2 border-gray-300"}`}
-              >
+                ${isSelected ? "bg-green-500" : "border-2 border-gray-300"}`}>
                 {isSelected && (
                   <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor" strokeWidth={3}>
@@ -160,10 +148,7 @@ export default function FridgeItemCard({
               <div className="flex items-center gap-3 mt-2">
                 <div className="flex items-center gap-1">
                   {([1, 2, 3] as const).map((seg) => (
-                    <div
-                      key={seg}
-                      className={`w-7 h-1.5 rounded-full ${seg <= qLevel ? qColor.fill : "bg-gray-100"}`}
-                    />
+                    <div key={seg} className={`w-7 h-1.5 rounded-full ${seg <= qLevel ? qColor.fill : "bg-gray-100"}`} />
                   ))}
                 </div>
                 <span className={`text-xs font-semibold shrink-0 ${qColor.text}`}>

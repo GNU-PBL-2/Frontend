@@ -38,6 +38,7 @@ function toAlarmItem(n: NotificationItem): AlarmItem {
     createdAtLabel,
     section: isToday ? "오늘" : "어제",
     isRead: n.isRead,
+    daysUntilExpiry: n.daysUntilExpiry,
   };
 }
 

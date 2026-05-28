@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Refrigerator, Plus, ArrowRight } from "lucide-react";
+import { Refrigerator, Plus, ArrowRight, ScanLine } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import IngredientModal from "@/components/fridge/IngredientModal";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
@@ -335,15 +335,25 @@ export default function FridgePage() {
                 <p className="text-[16px] font-bold text-gray-700">냉장고가 비어있어요</p>
                 <p className="text-[13px] text-gray-400 mt-1">재료를 추가해 보세요</p>
               </div>
-              <button
-                onClick={handleOpenAdd}
-                className="mt-2 flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-2xl
-                  text-[14px] font-bold active:scale-95 transition-transform duration-150
-                  shadow-[0_4px_14px_rgba(22,163,74,0.35)]"
-              >
-                <Plus className="w-4 h-4" />
-                재료 추가하기
-              </button>
+              <div className="mt-2 flex flex-col items-center gap-2">
+                <button
+                  onClick={handleOpenAdd}
+                  className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-2xl
+                    text-[14px] font-bold active:scale-95 transition-transform duration-150
+                    shadow-[0_4px_14px_rgba(22,163,74,0.35)]"
+                >
+                  <Plus className="w-4 h-4" />
+                  직접 추가하기
+                </button>
+                <button
+                  onClick={() => router.push("/scan")}
+                  className="flex items-center gap-2 bg-white border-2 border-green-600 text-green-700
+                    px-6 py-3 rounded-2xl text-[14px] font-bold active:scale-95 transition-transform duration-150"
+                >
+                  <ScanLine className="w-4 h-4" />
+                  카메라로 인식하기
+                </button>
+              </div>
             </div>
           ) : (
             filteredItems.map((item) => (
@@ -361,17 +371,30 @@ export default function FridgePage() {
           )}
         </div>
 
-        {/* 기본: FAB 추가 버튼 */}
+        {/* 기본: FAB 버튼 영역 */}
         {!isSelectMode && !isEditMode && filteredItems.length > 0 && (
-          <button
-            onClick={handleOpenAdd}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2
-              bg-green-600 text-white px-6 py-4 rounded-2xl text-[15px] font-bold
-              shadow-[0_4px_20px_rgba(22,163,74,0.4)] active:scale-95 transition-transform duration-150"
-          >
-            <Plus className="w-5 h-5" />
-            재료 추가
-          </button>
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3">
+            {/* 카메라 인식 버튼 */}
+            <button
+              onClick={() => router.push("/scan")}
+              className="flex items-center gap-2 bg-white border-2 border-green-600 text-green-700
+                px-5 py-3.5 rounded-2xl text-[14px] font-bold
+                shadow-[0_4px_16px_rgba(22,163,74,0.2)] active:scale-95 transition-transform duration-150"
+            >
+              <ScanLine className="w-5 h-5" />
+              카메라 인식
+            </button>
+            {/* 직접 추가 버튼 */}
+            <button
+              onClick={handleOpenAdd}
+              className="flex items-center gap-2 bg-green-600 text-white
+                px-5 py-3.5 rounded-2xl text-[14px] font-bold
+                shadow-[0_4px_20px_rgba(22,163,74,0.4)] active:scale-95 transition-transform duration-150"
+            >
+              <Plus className="w-5 h-5" />
+              직접 추가
+            </button>
+          </div>
         )}
 
         {/* 편집 모드 액션 바 */}
