@@ -14,6 +14,7 @@ export type AlarmItem = {
   createdAtLabel: string;
   section: AlarmSection;
   isRead: boolean;
+  daysUntilExpiry?: number; // 긴급도 표시용
 };
 
 function buildExpiryWarningAlarm(ingredient: Ingredient): AlarmItem {
