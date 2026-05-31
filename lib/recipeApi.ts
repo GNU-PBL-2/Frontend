@@ -1,7 +1,7 @@
 import { getToken } from "@/utils/auth";
 import { Recipe, RecipeListItem, RecipePage, RecipeFilterType } from "@/types/recipe";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 const TAB_MAP: Record<RecipeFilterType, string> = {
   "전체": "ALL",
