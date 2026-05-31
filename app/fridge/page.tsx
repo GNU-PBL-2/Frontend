@@ -147,10 +147,6 @@ export default function FridgePage() {
     const qty = Number(form.quantity);
 
     if (modalMode === "add") {
-      if (!memberId) {
-        showToast("로그인이 필요합니다");
-        return;
-      }
       if (!form.selectedIngredientId) {
         alert("재료를 검색해서 선택해 주세요.");
         return;
