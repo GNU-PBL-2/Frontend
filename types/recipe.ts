@@ -4,6 +4,9 @@ export type FridgeStatus = "NONE" | "ENOUGH" | "EXPIRING";
 // 레시피 분류
 export type RecipeCategory = "한식" | "중식" | "일식" | "양식" | "분식" | "기타";
 
+// 레시피 맛
+export type RecipeTaste = "매운맛" | "단맛" | "짠맛" | "신맛" | "고소한맛" | "담백한맛" | "쓴맛";
+
 // 필터 탭
 export type RecipeFilterType = "전체" | "임박우선" | "조리가능" | "즐겨찾기";
 
@@ -29,7 +32,9 @@ export type Recipe = {
   title: string;
   thumbnailUrl: string;
   categoryName: RecipeCategory;
+  tasteName: RecipeTaste;
   cookTimeMin: number;
+  description: string;
   youtubeUrl: string;
   favorite: boolean;
   ingredients: RecipeIngredient[];
@@ -61,7 +66,9 @@ export type RecipeFormData = {
   title: string;
   thumbnailUrl: string;
   categoryName: RecipeCategory;
+  tasteName: RecipeTaste;
   cookTimeMin: number;
+  description: string;
   youtubeUrl: string;
   ingredients: RecipeIngredient[];
   steps: RecipeStep[];
