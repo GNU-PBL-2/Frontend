@@ -52,7 +52,9 @@ export const mockRecipes: Recipe[] = [
     title: "시금치 된장국",
     thumbnailUrl: "https://picsum.photos/seed/spinach/400/300",
     categoryName: "한식",
+    tasteName: "담백한맛",
     cookTimeMin: 15,
+    description: "시금치와 된장이 어우러진 건강한 한 그릇",
     youtubeUrl: "https://www.youtube.com/watch?v=example1",
     favorite: true,
     ingredients: [
@@ -101,7 +103,9 @@ export const mockRecipes: Recipe[] = [
     title: "계란 볶음밥",
     thumbnailUrl: "https://picsum.photos/seed/eggrice/400/300",
     categoryName: "한식",
+    tasteName: "짠맛",
     cookTimeMin: 10,
+    description: "남은 밥으로 뚝딱 만드는 간단 볶음밥",
     youtubeUrl: "https://www.youtube.com/watch?v=example2",
     favorite: false,
     ingredients: [
@@ -150,7 +154,9 @@ export const mockRecipes: Recipe[] = [
     title: "소고기 무국",
     thumbnailUrl: "https://picsum.photos/seed/beefradish/400/300",
     categoryName: "한식",
+    tasteName: "담백한맛",
     cookTimeMin: 30,
+    description: "깔끔하고 시원한 소고기 무국",
     youtubeUrl: "https://www.youtube.com/watch?v=example3",
     favorite: true,
     ingredients: [
@@ -199,7 +205,9 @@ export const mockRecipes: Recipe[] = [
     title: "토마토 파스타",
     thumbnailUrl: "https://picsum.photos/seed/pasta/400/300",
     categoryName: "양식",
+    tasteName: "신맛",
     cookTimeMin: 25,
+    description: "신선한 토마토로 만드는 홈메이드 파스타",
     youtubeUrl: "https://www.youtube.com/watch?v=example4",
     favorite: false,
     ingredients: [
@@ -248,7 +256,9 @@ export const mockRecipes: Recipe[] = [
     title: "두부 김치찌개",
     thumbnailUrl: "https://picsum.photos/seed/kimchi/400/300",
     categoryName: "한식",
+    tasteName: "매운맛",
     cookTimeMin: 20,
+    description: "칼칼한 김치와 부드러운 두부가 조화로운 찌개",
     youtubeUrl: "https://www.youtube.com/watch?v=example5",
     favorite: false,
     ingredients: [
