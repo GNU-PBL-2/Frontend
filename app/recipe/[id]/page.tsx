@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { fetchRecipeDetail, addFavorite, removeFavorite } from "@/lib/recipeApi";
+import { addCartItems } from "@/lib/cartApi";
 import { Recipe, RecipeIngredient } from "@/types/recipe";
 import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
@@ -82,9 +83,16 @@ export default function RecipeDetailPage() {
     }
   }
 
-  function handleCartConfirm(selected: RecipeIngredient[]) {
-    const names = selected.map((ing) => ing.name).join(", ");
-    showToast(`${names}이/가 장바구니에 추가되었습니다`);
+  async function handleCartConfirm(selected: RecipeIngredient[]) {
+    await addCartItems(
+      selected.map((ing) => ({
+        ingredientId: ing.ingredientId,
+        name: ing.name,
+        quantity: 1,
+        unit: ing.unit || null,
+      }))
+    );
+    showToast(`${selected.length}개 재료를 장바구니에 담았어요`);
   }
 
   if (isLoading) {
