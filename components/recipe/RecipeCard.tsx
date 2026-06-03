@@ -31,7 +31,8 @@ export default function RecipeCard({
 }: Props) {
   const [imgError, setImgError] = useState(false);
 
-  const { rate } = calcMatchRate(recipe.ingredients);
+  const { rate, total } = calcMatchRate(recipe.ingredients);
+  const hasIngredientData = total > 0;
   const shortage = getShortageIngredients(recipe.ingredients);
   const owned = getOwnedIngredients(recipe.ingredients);
   const isExpiring = hasExpiringIngredient(recipe.ingredients);
@@ -116,23 +117,29 @@ export default function RecipeCard({
           >
             {recipe.title}
           </h3>
-          <div className="shrink-0">
-            <MatchingRing pct={rate} />
-          </div>
+          {hasIngredientData && (
+            <div className="shrink-0">
+              <MatchingRing pct={rate} />
+            </div>
+          )}
         </div>
 
         {/* 2줄: 조리시간 · 부족/가능 상태 */}
         <p className="text-xs whitespace-nowrap" style={{ color: "#5B6B60" }}>
           🕒 {recipe.cookTimeMin}분
-          {" · "}
-          {shortage.length > 0 ? (
-            <span className="font-bold" style={{ color: "#B5631A" }}>
-              {shortage.length}개 부족
-            </span>
-          ) : (
-            <span className="font-bold" style={{ color: "#0D7A37" }}>
-              바로 가능
-            </span>
+          {hasIngredientData && (
+            <>
+              {" · "}
+              {shortage.length > 0 ? (
+                <span className="font-bold" style={{ color: "#B5631A" }}>
+                  {shortage.length}개 부족
+                </span>
+              ) : (
+                <span className="font-bold" style={{ color: "#0D7A37" }}>
+                  바로 가능
+                </span>
+              )}
+            </>
           )}
         </p>
 
