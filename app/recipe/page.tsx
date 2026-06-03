@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, Sparkles } from "lucide-react";
+import { Search, X, Sparkles, Flame, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { fetchUserProfile } from "@/lib/dashboardApi";
+import { fetchFridgeList, FridgeItem } from "@/lib/fridgeApi";
 import { getToken } from "@/utils/auth";
-import { RecipeListItem, RecipeFilterType } from "@/types/recipe";
+import { getUserIdFromToken } from "@/utils/auth";
+import { getDaysLeft } from "@/utils/expiryHelpers";
+import { calcMatchRate } from "@/utils/recipeHelpers";
+import { RecipeListItem, RecipeFilterType, IngredientSummary } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
@@ -14,12 +18,23 @@ import { useToast } from "@/hooks/useToast";
 
 const FILTERS: RecipeFilterType[] = ["임박우선", "전체", "조리가능", "즐겨찾기"];
 const PAGE_SIZE = 10;
+const EXPIRING_BANNER_DAYS = 7;
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl overflow-hidden shadow-sm">
-      <div className="w-full h-52 skeleton" />
-      <div className="h-12 bg-gray-100" />
+    <div className="bg-white rounded-2xl p-3 shadow-md flex flex-row gap-3">
+      <div className="shrink-0 rounded-2xl skeleton" style={{ width: 86, height: 86 }} />
+      <div className="flex-1 flex flex-col justify-between py-0.5 gap-2">
+        <div className="flex items-start gap-2">
+          <div className="flex-1 h-5 rounded-lg skeleton" />
+          <div className="shrink-0 w-11 h-11 rounded-full skeleton" />
+        </div>
+        <div className="h-3 w-28 rounded skeleton" />
+        <div className="flex gap-1">
+          <div className="h-5 w-14 rounded-full skeleton" />
+          <div className="h-5 w-12 rounded-full skeleton" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -37,20 +52,27 @@ export default function RecipePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [userPrefs, setUserPrefs] = useState<{
     categories: string[]; tastes: string[]; allergies: string[];
   } | null>(null);
   const [prefEnabled, setPrefEnabled] = useState(true);
+
+  const [expiringItems, setExpiringItems] = useState<FridgeItem[]>([]);
+
   const { toastMessage, toastVisible, showToast } = useToast();
 
+  // 검색어 디바운스
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // 취향 + 냉장고 임박 재료 로드
   useEffect(() => {
     const token = getToken();
     if (!token) return;
+
     fetchUserProfile()
       .then((p) => setUserPrefs({
         categories: p.categories ?? [],
@@ -58,6 +80,18 @@ export default function RecipePage() {
         allergies: p.allergies ?? [],
       }))
       .catch(() => {});
+
+    const memberId = getUserIdFromToken();
+    if (memberId) {
+      fetchFridgeList(memberId)
+        .then((items) => {
+          const expiring = items.filter(
+            (item) => item.expiryDate && getDaysLeft(item.expiryDate) <= EXPIRING_BANNER_DAYS
+          );
+          setExpiringItems(expiring);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const hasPrefs = userPrefs !== null && (
@@ -115,6 +149,13 @@ export default function RecipePage() {
     }
   }
 
+  // 매칭률 내림차순 정렬
+  const sortedRecipes = useMemo(() => {
+    return [...recipes].sort(
+      (a, b) => calcMatchRate(b.ingredients).rate - calcMatchRate(a.ingredients).rate
+    );
+  }, [recipes]);
+
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
     const title = recipes.find((r) => r.id === id)?.title ?? "";
@@ -151,38 +192,105 @@ export default function RecipePage() {
     router.push(`/recipe/${recipe.id}?favorite=${isFav}`);
   }
 
+  function handleAddToCart(ingredient: IngredientSummary) {
+    // Step 6에서 cart API 연동 예정 — 현재는 토스트만 표시
+    showToast(`${ingredient.name}을/를 장바구니에 추가했어요`);
+  }
+
   const prefSummary = [
     (userPrefs?.categories.length ?? 0) > 0 ? `카테고리 ${userPrefs!.categories.length}개` : null,
     (userPrefs?.tastes.length ?? 0) > 0 ? `맛 ${userPrefs!.tastes.length}개` : null,
     (userPrefs?.allergies.length ?? 0) > 0 ? `알레르기 ${userPrefs!.allergies.length}개 제외` : null,
   ].filter(Boolean).join(" · ");
 
+  // 배너용: D-day 라벨이 있는 임박 재료 상위 2개
+  const bannerIngredients = expiringItems
+    .slice()
+    .sort((a, b) => getDaysLeft(a.expiryDate) - getDaysLeft(b.expiryDate))
+    .slice(0, 2);
+
+  const bannerText = bannerIngredients
+    .map((item) => {
+      const d = getDaysLeft(item.expiryDate);
+      return d <= 0 ? `${item.ingredientName} 만료` : `${item.ingredientName} D-${d}`;
+    })
+    .join(" · ");
+
   return (
-    <div className="bg-gray-50 min-h-screen flex justify-center">
+    <div className="min-h-screen flex justify-center" style={{ background: "#F4F7EF" }}>
       <div className="w-full max-w-sm bg-white min-h-screen">
 
         {/* 스티키 헤더 */}
         <div className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]">
-          <div className="px-4 pt-6 pb-3">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">레시피 추천</h1>
+          <div className="px-4 pt-6 pb-3 space-y-3">
 
-            {/* 검색창 */}
-            <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
-              shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200 mb-4">
-              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            {/* 1. 헤더 행 */}
+            <div className="flex items-center justify-between">
+              <h1 style={{ fontSize: 27, fontWeight: 800, color: "#16201A" }}>
+                레시피 추천
+              </h1>
+              <button
+                className="flex items-center justify-center rounded-full border"
+                style={{
+                  width: 42, height: 42,
+                  borderColor: "#E6ECDF",
+                  color: "#5B6B60",
+                }}
+                aria-label="정렬/필터"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 2. 검색바 */}
+            <div
+              className="flex items-center gap-3 bg-white px-4 focus-within:border-green-500 transition-colors duration-200"
+              style={{
+                height: 46,
+                borderRadius: 14,
+                border: "1px solid #E6ECDF",
+              }}
+            >
+              <Search className="w-4 h-4 shrink-0" style={{ color: "#909C92" }} />
               <input
                 type="text"
                 placeholder="요리, 식재료 검색"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none bg-transparent"
+                className="flex-1 text-[14px] outline-none bg-transparent"
+                style={{ color: "#16201A" }}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-gray-400">
+                <button onClick={() => setSearchQuery("")} style={{ color: "#909C92" }}>
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
+
+            {/* 3. 임박 재료 배너 */}
+            {expiringItems.length > 0 && (
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 text-left active:scale-[0.98] transition-transform duration-150"
+                style={{ background: "#FBEDDB", borderRadius: 14 }}
+                onClick={() => setActiveFilter("임박우선")}
+              >
+                <div
+                  className="shrink-0 flex items-center justify-center rounded-full"
+                  style={{ width: 30, height: 30, background: "#E1832A" }}
+                >
+                  <Flame className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold" style={{ color: "#B5631A" }}>
+                    임박 재료부터 써요
+                  </p>
+                  <p className="text-[11px] truncate" style={{ color: "#E1832A" }}>
+                    {bannerText} 활용 레시피
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "#E1832A" }} />
+              </button>
+            )}
 
             {/* 필터 탭 */}
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -234,7 +342,6 @@ export default function RecipePage() {
                   }`} />
                 </button>
               </div>
-
               <div className="flex items-center justify-between gap-2">
                 <p className={`text-[11px] truncate flex-1 transition-colors duration-300 ${
                   prefEnabled ? "text-green-600" : "text-gray-400"
@@ -250,10 +357,22 @@ export default function RecipePage() {
               </div>
             </div>
           )}
+
+          {/* 4. 정렬 라벨 행 */}
+          {!isLoading && recipes.length > 0 && (
+            <div className="flex items-center justify-between px-4 pb-2">
+              <span style={{ fontSize: 13.5, fontWeight: 800, color: "#16201A" }}>
+                지금 만들 수 있어요
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}>
+                매칭률 높은순 ▾
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 레시피 목록 */}
-        <div className="flex-1 px-4 py-2 space-y-4 pb-24">
+        <div className="flex-1 px-4 py-3 space-y-3 pb-24">
           {isLoading ? (
             <>
               <CardSkeleton />
@@ -271,7 +390,7 @@ export default function RecipePage() {
                 다시 시도
               </button>
             </div>
-          ) : recipes.length === 0 ? (
+          ) : sortedRecipes.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400">
               <span className="text-5xl mb-3">🍽️</span>
               <p className="text-base font-medium text-gray-500">레시피가 없어요</p>
@@ -293,7 +412,7 @@ export default function RecipePage() {
             </div>
           ) : (
             <>
-              {recipes.map((recipe, i) => (
+              {sortedRecipes.map((recipe, i) => (
                 <RecipeCard
                   key={recipe.id}
                   recipe={recipe}
@@ -301,6 +420,7 @@ export default function RecipePage() {
                   isFavorite={favoriteIds.has(recipe.id)}
                   onToggleFavorite={handleToggleFavorite}
                   onStart={() => handleRecipeClick(recipe)}
+                  onAddToCart={handleAddToCart}
                 />
               ))}
 
