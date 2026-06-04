@@ -266,7 +266,7 @@ export default function FridgePage() {
 
   return (
     <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-gray-50 min-h-screen p-4 relative">
+      <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen p-4 relative">
         <div className="bg-white -mx-4 -mt-4 mb-4 px-5 pt-10 pb-4 shadow-[0_1px_0_rgba(0,0,0,0.06)]">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-extrabold text-gray-950">나의 냉장고</h1>
