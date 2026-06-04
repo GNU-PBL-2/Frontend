@@ -370,7 +370,7 @@ export default function RecipePage() {
                 지금 만들 수 있어요
               </span>
               <button
-                onClick={() => setIsSortSheetOpen(true)}
+                onClick={handleCycleSort}
                 style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}
               >
                 {SORT_LABELS[activeSort]} ▾
