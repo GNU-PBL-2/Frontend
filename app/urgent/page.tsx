@@ -134,9 +134,10 @@ export default function UrgentPage() {
         </Link>
 
         <div className="h-5" />
-      </div>
+        </div>
 
-      <BottomNav />
+        <BottomNav />
+      </div>
     </div>
   );
 }
