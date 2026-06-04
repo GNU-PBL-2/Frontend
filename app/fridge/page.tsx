@@ -355,7 +355,6 @@ export default function FridgePage() {
                 isSelected={selectedIds.includes(item.fridgeId)}
                 onSelect={handleSelect}
                 onLongPress={handleLongPress}
-                onDelete={handleDelete}
                 onEditPress={handleOpenEdit}
               />
             ))

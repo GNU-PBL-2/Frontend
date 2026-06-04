@@ -85,12 +85,16 @@ export default function RecipeDetailPage() {
 
   async function handleCartConfirm(selected: RecipeIngredient[]) {
     await addCartItems(
-      selected.map((ing) => ({
-        ingredientId: ing.ingredientId,
-        name: ing.name,
-        quantity: 1,
-        unit: ing.unit || null,
-      }))
+      selected.map((ing) => {
+        const parsed = Math.round(parseFloat(ing.amount));
+        const quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed;
+        return {
+          ingredientId: ing.ingredientId,
+          name: ing.name,
+          quantity,
+          unit: ing.unit || null,
+        };
+      })
     );
     showToast(`${selected.length}개 재료를 장바구니에 담았어요`);
   }
