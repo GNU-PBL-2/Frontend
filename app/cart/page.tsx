@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
 import { ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator, Trash2, X } from "lucide-react";
 import {
@@ -54,13 +54,11 @@ function CartItemCard({
   index,
   onToggle,
   onQuantityChange,
-  onDelete,
 }: {
   item: CartItem;
   index: number;
   onToggle: (id: number, checked: boolean) => void;
   onQuantityChange: (id: number, newQty: number) => void;
-  onDelete: (id: number) => void;
 }) {
   const [checkAnim, setCheckAnim] = useState(false);
 
@@ -511,7 +509,6 @@ export default function CartPage() {
                         index={i}
                         onToggle={handleToggle}
                         onQuantityChange={handleQuantityChange}
-                        onDelete={handleDelete}
                       />
                     ))}
                   </div>
