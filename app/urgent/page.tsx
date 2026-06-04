@@ -76,12 +76,13 @@ export default function UrgentPage() {
 
   return (
     <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white min-h-screen px-4 pt-8 pb-28">
-        <div className="mb-10">
-          <h1 className="text-xl font-extrabold tracking-tight text-gray-950">
-            유통기한 <span className="text-red-500">임박 재료</span>
+      <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen pb-28">
+        <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-4 shadow-[0_1px_0_#E6ECDF]">
+          <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>
+            유통기한 <span style={{ color: "#E1832A" }}>임박 재료</span>
           </h1>
         </div>
+        <div className="px-4 pt-6">
 
         {authError ? (
           <div className="text-center text-sm text-gray-400 mt-10">
