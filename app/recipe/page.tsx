@@ -449,6 +449,12 @@ export default function RecipePage() {
 
         <BottomNav />
         <Toast message={toastMessage} visible={toastVisible} />
+        <SortBottomSheet
+          isOpen={isSortSheetOpen}
+          currentSort={activeSort}
+          onSelect={setActiveSort}
+          onClose={() => setIsSortSheetOpen(false)}
+        />
       </div>
     </div>
   );
