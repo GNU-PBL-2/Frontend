@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Check, Plus, Flame } from "lucide-react";
 import { RecipeListItem, IngredientSummary } from "@/types/recipe";
 import MatchingRing from "@/components/recipe/MatchingRing";
+import RecipePlaceholder from "@/components/recipe/RecipePlaceholder";
 import {
   calcMatchRate,
   getShortageIngredients,
