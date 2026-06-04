@@ -309,7 +309,7 @@ export default function MyPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="flex min-h-screen justify-center bg-gray-50">
+      <div className="flex min-h-screen justify-center bg-[#F4F7EF]">
         <div className="w-full max-w-sm bg-gray-50 min-h-screen pb-28">
 
           {/* 헤더 */}
