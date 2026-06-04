@@ -102,17 +102,21 @@ export default function AlarmPage() {
 
   return (
     <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen px-4 pt-4 pb-24">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">알림</h1>
-          <button
-            onClick={handleMarkAllRead}
-            className="text-sm font-medium text-blue-500 disabled:text-gray-300 transition-opacity"
-            disabled={unreadCount === 0 || marking}
-          >
-            {marking ? "처리 중..." : "모두 읽기"}
-          </button>
+      <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen pb-24">
+        <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-4 shadow-[0_1px_0_#E6ECDF]">
+          <div className="flex items-center justify-between">
+            <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>알림</h1>
+            <button
+              onClick={handleMarkAllRead}
+              className="text-sm font-semibold disabled:text-gray-300 transition-opacity"
+              style={{ color: "#1AA64E" }}
+              disabled={unreadCount === 0 || marking}
+            >
+              {marking ? "처리 중..." : "모두 읽기"}
+            </button>
+          </div>
         </div>
+        <div className="px-4 pt-4">
 
         {error ? (
           <div className="h-[60vh] flex items-center justify-center text-sm text-red-400">
