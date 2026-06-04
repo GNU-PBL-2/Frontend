@@ -313,8 +313,8 @@ export default function MyPage() {
         <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen pb-28">
 
           {/* 헤더 */}
-          <div className="bg-white px-5 pt-10 pb-5 shadow-[0_1px_0_rgba(0,0,0,0.06)]">
-            <h1 className="text-xl font-extrabold text-gray-950 mb-4">마이페이지</h1>
+          <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-5 shadow-[0_1px_0_#E6ECDF]">
+            <h1 className="font-extrabold mb-4" style={{ fontSize: 27, color: "#16201A" }}>마이페이지</h1>
 
             {/* 프로필 — 페이드업 등장 */}
             {loading ? (
