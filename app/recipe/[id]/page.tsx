@@ -101,7 +101,7 @@ export default function RecipeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen flex justify-center">
+      <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
         <DetailSkeleton />
       </div>
     );
@@ -127,7 +127,7 @@ export default function RecipeDetailPage() {
     .every((ing) => ing.fridgeStatus !== "NONE");
 
   return (
-    <div className="bg-white min-h-screen flex justify-center">
+    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm relative">
 
         {/* 히어로 이미지 */}
