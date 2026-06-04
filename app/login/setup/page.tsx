@@ -171,7 +171,7 @@ export default function LoginSetupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f2f4f7] text-[#111111]">
+    <main className="min-h-screen bg-[#F4F7EF] text-[#111111]">
       <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col bg-white px-6 py-6">
         {/* 헤더 */}
         <div className="flex items-center">
