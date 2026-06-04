@@ -51,7 +51,7 @@ function getDdayLabel(days: number): string {
 
 function DashboardSkeleton() {
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
+    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm pb-24">
         <div className="px-5 pt-12 pb-20 animate-pulse" style={{ background: "linear-gradient(135deg, #1a4731 0%, #2d7a4f 100%)" }}>
           <div className="h-3 bg-green-600/50 rounded-full w-32 mb-3" />
@@ -143,7 +143,7 @@ export default function Home() {
   ] as const;
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
+    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm pb-24">
 
         {/* ── 그라디언트 헤더 ── */}
