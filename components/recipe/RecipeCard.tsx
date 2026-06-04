@@ -66,9 +66,7 @@ export default function RecipeCard({
         style={{ width: 86, height: 86, borderRadius: 13 }}
       >
         {imgError || !recipe.thumbnailUrl ? (
-          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-            <span className="text-3xl">🍽️</span>
-          </div>
+          <RecipePlaceholder title={recipe.title} />
         ) : (
           <Image
             src={recipe.thumbnailUrl}
