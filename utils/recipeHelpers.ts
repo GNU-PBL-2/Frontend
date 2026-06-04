@@ -39,8 +39,6 @@ export function sortRecipes(recipes: RecipeListItem[], sort: SortOption): Recipe
         return (a.cookTimeMin ?? 9999) - (b.cookTimeMin ?? 9999);
       case "EXPIRING_COUNT":
         return b.expiringIngredientCount - a.expiringIngredientCount;
-      case "MISSING_COUNT":
-        return getShortageIngredients(a.ingredients).length - getShortageIngredients(b.ingredients).length;
     }
   });
 }
