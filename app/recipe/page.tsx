@@ -448,19 +448,13 @@ export default function RecipePage() {
                 />
               ))}
 
+              {/* 무한 스크롤 센티널 */}
               {!isLast && (
-                <button
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  className="w-full py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-500 font-semibold disabled:opacity-50 transition-opacity"
-                >
-                  {isLoadingMore ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin inline-block" />
-                      불러오는 중
-                    </span>
-                  ) : "더보기"}
-                </button>
+                <div ref={sentinelRef} className="py-4 flex justify-center">
+                  {isLoadingMore && (
+                    <span className="w-5 h-5 border-2 border-[#1AA64E] border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
               )}
             </>
           )}
