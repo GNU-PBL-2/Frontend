@@ -153,6 +153,7 @@ export default function AlarmPage() {
         )}
 
         <BottomNav />
+        </div>
       </div>
     </div>
   );
