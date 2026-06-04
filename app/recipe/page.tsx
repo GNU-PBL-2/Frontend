@@ -9,8 +9,8 @@ import { fetchFridgeList, FridgeItem } from "@/lib/fridgeApi";
 import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
-import { calcMatchRate } from "@/utils/recipeHelpers";
-import { RecipeListItem, RecipeFilterType, IngredientSummary } from "@/types/recipe";
+import { sortRecipes } from "@/utils/recipeHelpers";
+import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS, SORT_CYCLE } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
@@ -42,6 +42,12 @@ function CardSkeleton() {
 export default function RecipePage() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
+  const [activeSort, setActiveSort] = useState<SortOption>("MATCH_RATE");
+
+  function handleCycleSort() {
+    const idx = SORT_CYCLE.indexOf(activeSort);
+    setActiveSort(SORT_CYCLE[(idx + 1) % SORT_CYCLE.length]);
+  }
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -149,12 +155,10 @@ export default function RecipePage() {
     }
   }
 
-  // 매칭률 내림차순 정렬
-  const sortedRecipes = useMemo(() => {
-    return [...recipes].sort(
-      (a, b) => calcMatchRate(b.ingredients).rate - calcMatchRate(a.ingredients).rate
-    );
-  }, [recipes]);
+  const sortedRecipes = useMemo(
+    () => sortRecipes(recipes, activeSort),
+    [recipes, activeSort]
+  );
 
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
@@ -230,13 +234,14 @@ export default function RecipePage() {
                 레시피 추천
               </h1>
               <button
+                onClick={handleCycleSort}
                 className="flex items-center justify-center rounded-full border"
                 style={{
                   width: 42, height: 42,
                   borderColor: "#E6ECDF",
                   color: "#5B6B60",
                 }}
-                aria-label="정렬/필터"
+                aria-label="정렬 기준 변경"
               >
                 <SlidersHorizontal className="w-4 h-4" />
               </button>
@@ -364,9 +369,12 @@ export default function RecipePage() {
               <span style={{ fontSize: 13.5, fontWeight: 800, color: "#16201A" }}>
                 지금 만들 수 있어요
               </span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}>
-                매칭률 높은순 ▾
-              </span>
+              <button
+                onClick={handleCycleSort}
+                style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}
+              >
+                {SORT_LABELS[activeSort]} ▾
+              </button>
             </div>
           )}
         </div>

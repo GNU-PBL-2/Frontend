@@ -135,6 +135,7 @@ export default function FridgePage() {
   }
 
   async function handleSaveItem() {
+    if (!memberId) return;
     if (!form.expiryDate) {
       alert("유통기한을 입력해 주세요.");
       return;

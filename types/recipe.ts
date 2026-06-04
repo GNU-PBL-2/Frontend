@@ -17,6 +17,17 @@ export type RecipeTaste = "매운맛" | "단맛" | "짠맛" | "신맛" | "고소
 // 필터 탭
 export type RecipeFilterType = "전체" | "임박우선" | "조리가능" | "즐겨찾기";
 
+// 정렬 옵션
+export type SortOption = "MATCH_RATE" | "COOK_TIME" | "EXPIRING_COUNT";
+
+export const SORT_LABELS: Record<SortOption, string> = {
+  MATCH_RATE: "매칭률 높은순",
+  COOK_TIME: "조리시간 짧은순",
+  EXPIRING_COUNT: "임박 재료 많은순",
+};
+
+export const SORT_CYCLE: SortOption[] = ["MATCH_RATE", "COOK_TIME", "EXPIRING_COUNT"];
+
 // 레시피에 포함된 재료 1개 (백엔드 구조 그대로)
 export type RecipeIngredient = {
   ingredientId: number;
