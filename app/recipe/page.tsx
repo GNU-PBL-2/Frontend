@@ -152,12 +152,10 @@ export default function RecipePage() {
     }
   }
 
-  // 매칭률 내림차순 정렬
-  const sortedRecipes = useMemo(() => {
-    return [...recipes].sort(
-      (a, b) => calcMatchRate(b.ingredients).rate - calcMatchRate(a.ingredients).rate
-    );
-  }, [recipes]);
+  const sortedRecipes = useMemo(
+    () => sortRecipes(recipes, activeSort),
+    [recipes, activeSort]
+  );
 
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
@@ -233,13 +231,14 @@ export default function RecipePage() {
                 레시피 추천
               </h1>
               <button
+                onClick={() => setIsSortSheetOpen(true)}
                 className="flex items-center justify-center rounded-full border"
                 style={{
                   width: 42, height: 42,
                   borderColor: "#E6ECDF",
                   color: "#5B6B60",
                 }}
-                aria-label="정렬/필터"
+                aria-label="정렬 기준 변경"
               >
                 <SlidersHorizontal className="w-4 h-4" />
               </button>
@@ -367,9 +366,12 @@ export default function RecipePage() {
               <span style={{ fontSize: 13.5, fontWeight: 800, color: "#16201A" }}>
                 지금 만들 수 있어요
               </span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}>
-                매칭률 높은순 ▾
-              </span>
+              <button
+                onClick={() => setIsSortSheetOpen(true)}
+                style={{ fontSize: 12, fontWeight: 600, color: "#1AA64E" }}
+              >
+                {SORT_LABELS[activeSort]} ▾
+              </button>
             </div>
           )}
         </div>
