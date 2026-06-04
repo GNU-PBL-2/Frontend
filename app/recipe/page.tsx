@@ -43,7 +43,11 @@ export default function RecipePage() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
   const [activeSort, setActiveSort] = useState<SortOption>("MATCH_RATE");
-  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+
+  function handleCycleSort() {
+    const idx = SORT_CYCLE.indexOf(activeSort);
+    setActiveSort(SORT_CYCLE[(idx + 1) % SORT_CYCLE.length]);
+  }
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
