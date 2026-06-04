@@ -1,6 +1,13 @@
 // 백엔드 FridgeStatus enum과 동일
 export type FridgeStatus = "NONE" | "ENOUGH" | "EXPIRING";
 
+// 레시피 목록 카드용 재료 요약 (백엔드 IngredientSummary와 동일)
+export type IngredientSummary = {
+  ingredientId: number;
+  name: string;
+  fridgeStatus: FridgeStatus;
+};
+
 // 레시피 분류
 export type RecipeCategory = "한식" | "중식" | "일식" | "양식" | "분식" | "기타";
 
@@ -50,6 +57,7 @@ export type RecipeListItem = {
   cookable: boolean;
   expiringIngredientCount: number;
   isFavorite: boolean;
+  ingredients: IngredientSummary[];
 };
 
 // Spring Page 응답 래퍼

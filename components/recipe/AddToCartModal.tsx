@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { RecipeIngredient } from "@/types/recipe";
 
-
 type AddToCartModalProps = {
   isOpen: boolean;
   ingredients: RecipeIngredient[];
   onClose: () => void;
-  onConfirm: (selectedIngredients: RecipeIngredient[]) => void; // 선택된 재료 전달 콜백
+  onConfirm: (selectedIngredients: RecipeIngredient[]) => Promise<void>;
 };
 
 export default function AddToCartModal({
@@ -18,9 +17,13 @@ export default function AddToCartModal({
   onConfirm,
 }: AddToCartModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) setSelectedIds([]);
+    if (!isOpen) {
+      setSelectedIds([]);
+      setIsLoading(false);
+    }
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -31,13 +34,19 @@ export default function AddToCartModal({
     );
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
+    if (isLoading || selectedIds.length === 0) return;
     const selected = ingredients.filter((ing) =>
       selectedIds.includes(ing.ingredientId)
     );
-    onConfirm(selected);
-    setSelectedIds([]);
-    onClose();
+    setIsLoading(true);
+    try {
+      await onConfirm(selected);
+      setSelectedIds([]);
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -52,11 +61,7 @@ export default function AddToCartModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900">장바구니 추가</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400"
-            aria-label="닫기"
-          >
+          <button onClick={onClose} className="text-gray-400" aria-label="닫기">
             ✕
           </button>
         </div>
@@ -74,18 +79,22 @@ export default function AddToCartModal({
                 }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                  ${selectedIds.includes(ing.ingredientId)
-                    ? "border-green-600 bg-green-600"
-                    : "border-gray-300"
-                  }`}>
+                <span
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                    ${selectedIds.includes(ing.ingredientId)
+                      ? "border-green-600 bg-green-600"
+                      : "border-gray-300"
+                    }`}
+                >
                   {selectedIds.includes(ing.ingredientId) && (
                     <span className="text-white text-xs">✓</span>
                   )}
                 </span>
                 <span className="text-sm text-gray-800">{ing.name}</span>
               </div>
-              <span className="text-sm text-gray-400">{ing.amount}{ing.unit}</span>
+              <span className="text-sm text-gray-400">
+                {ing.amount}{ing.unit}
+              </span>
             </button>
           ))}
         </div>
@@ -93,17 +102,23 @@ export default function AddToCartModal({
         {/* 확인 버튼 */}
         <button
           onClick={handleConfirm}
-          disabled={selectedIds.length === 0}
+          disabled={selectedIds.length === 0 || isLoading}
           className={`w-full py-3.5 rounded-xl text-sm font-bold transition-colors
-            ${selectedIds.length > 0
+            ${selectedIds.length > 0 && !isLoading
               ? "bg-green-700 text-white"
               : "bg-gray-100 text-gray-400"
             }`}
         >
-          {selectedIds.length > 0
-            ? `${selectedIds.length}개 장바구니에 추가`
-            : "재료를 선택해주세요"
-          }
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              추가 중...
+            </span>
+          ) : selectedIds.length > 0 ? (
+            `${selectedIds.length}개 장바구니에 추가`
+          ) : (
+            "재료를 선택해주세요"
+          )}
         </button>
       </div>
     </div>
