@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Sparkles, Flame, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
@@ -155,10 +155,26 @@ export default function RecipePage() {
     }
   }
 
-  const sortedRecipes = useMemo(
-    () => sortRecipes(recipes, activeSort),
-    [recipes, activeSort]
-  );
+  const sortedRecipes = useMemo(() => {
+    const unique = [...new Map(recipes.map((r) => [r.id, r])).values()];
+    return sortRecipes(unique, activeSort);
+  }, [recipes, activeSort]);
+
+  // 무한 스크롤 — 센티널이 뷰포트에 들어오면 다음 페이지 로드
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const handleLoadMoreRef = useRef(handleLoadMore);
+  handleLoadMoreRef.current = handleLoadMore;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) handleLoadMoreRef.current(); },
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
