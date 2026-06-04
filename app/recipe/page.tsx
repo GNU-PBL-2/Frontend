@@ -222,7 +222,7 @@ export default function RecipePage() {
 
   return (
     <div className="min-h-screen flex justify-center" style={{ background: "#F4F7EF" }}>
-      <div className="w-full max-w-sm bg-white min-h-screen">
+      <div className="w-full max-w-sm min-h-screen">
 
         {/* 스티키 헤더 */}
         <div className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]">
