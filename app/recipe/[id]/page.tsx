@@ -130,8 +130,8 @@ export default function RecipeDetailPage() {
     <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm relative">
 
-        {/* 히어로 이미지 */}
-        <div className="relative w-full h-72 bg-gray-200">
+        {/* 히어로 이미지 — sticky: 스크롤해도 고정, 콘텐츠 카드(z-10)가 위로 덮음 */}
+        <div className="sticky top-0 w-full h-72 bg-gray-200">
           {imgError || !recipe.thumbnailUrl ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
               <span className="text-8xl">🍽️</span>
