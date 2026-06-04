@@ -234,7 +234,7 @@ export default function RecipePage() {
                 레시피 추천
               </h1>
               <button
-                onClick={() => setIsSortSheetOpen(true)}
+                onClick={handleCycleSort}
                 className="flex items-center justify-center rounded-full border"
                 style={{
                   width: 42, height: 42,
@@ -452,12 +452,6 @@ export default function RecipePage() {
 
         <BottomNav />
         <Toast message={toastMessage} visible={toastVisible} />
-        <SortBottomSheet
-          isOpen={isSortSheetOpen}
-          currentSort={activeSort}
-          onSelect={setActiveSort}
-          onClose={() => setIsSortSheetOpen(false)}
-        />
       </div>
     </div>
   );
