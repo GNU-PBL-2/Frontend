@@ -9,7 +9,7 @@ import { fetchFridgeList, FridgeItem } from "@/lib/fridgeApi";
 import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
-import { calcMatchRate, sortRecipes } from "@/utils/recipeHelpers";
+import { sortRecipes } from "@/utils/recipeHelpers";
 import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import SortBottomSheet from "@/components/recipe/SortBottomSheet";
