@@ -1,4 +1,4 @@
-import { RecipeIngredient, IngredientSummary } from "@/types/recipe";
+import { RecipeIngredient, IngredientSummary, RecipeListItem, SortOption } from "@/types/recipe";
 import { Ingredient } from "@/types/ingredient";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 
@@ -27,6 +27,22 @@ export function getOwnedIngredients(ingredients: IngredientSummary[]): Ingredien
 // 임박 재료 포함 여부 (EXPIRING 상태인 재료가 하나라도 있으면 true)
 export function hasExpiringIngredient(ingredients: IngredientSummary[]): boolean {
   return ingredients.some((i) => i.fridgeStatus === "EXPIRING");
+}
+
+// 정렬 옵션에 따라 레시피 목록 정렬 (원본 배열 변경 없음)
+export function sortRecipes(recipes: RecipeListItem[], sort: SortOption): RecipeListItem[] {
+  return [...recipes].sort((a, b) => {
+    switch (sort) {
+      case "MATCH_RATE":
+        return calcMatchRate(b.ingredients).rate - calcMatchRate(a.ingredients).rate;
+      case "COOK_TIME":
+        return (a.cookTimeMin ?? 9999) - (b.cookTimeMin ?? 9999);
+      case "EXPIRING_COUNT":
+        return b.expiringIngredientCount - a.expiringIngredientCount;
+      case "MISSING_COUNT":
+        return getShortageIngredients(a.ingredients).length - getShortageIngredients(b.ingredients).length;
+    }
+  });
 }
 
 // 냉장고 재료 기준으로 레시피 재료의 fridgeStatus 동적 계산
