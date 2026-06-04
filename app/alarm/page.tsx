@@ -92,7 +92,7 @@ export default function AlarmPage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-100 min-h-screen flex justify-center">
+      <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
         <div className="w-full max-w-sm bg-white min-h-screen flex items-center justify-center">
           <p className="text-sm text-gray-400">알림을 불러오는 중...</p>
         </div>
@@ -101,7 +101,7 @@ export default function AlarmPage() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
+    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm bg-white min-h-screen px-4 pt-4 pb-24">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-gray-900">알림</h1>
