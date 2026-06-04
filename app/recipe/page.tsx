@@ -9,9 +9,10 @@ import { fetchFridgeList, FridgeItem } from "@/lib/fridgeApi";
 import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
-import { calcMatchRate } from "@/utils/recipeHelpers";
-import { RecipeListItem, RecipeFilterType, IngredientSummary } from "@/types/recipe";
+import { calcMatchRate, sortRecipes } from "@/utils/recipeHelpers";
+import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
+import SortBottomSheet from "@/components/recipe/SortBottomSheet";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
 import { useToast } from "@/hooks/useToast";
@@ -42,6 +43,8 @@ function CardSkeleton() {
 export default function RecipePage() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<RecipeFilterType>("전체");
+  const [activeSort, setActiveSort] = useState<SortOption>("MATCH_RATE");
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
