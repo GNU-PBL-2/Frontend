@@ -62,21 +62,9 @@ function CartItemCard({
   onQuantityChange: (id: number, newQty: number) => void;
   onDelete: (id: number) => void;
 }) {
-  const [isSwiped, setIsSwiped] = useState(false);
   const [checkAnim, setCheckAnim] = useState(false);
-  const touchStartX = useRef(0);
-
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-  function handleTouchEnd(e: React.TouchEvent) {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setIsSwiped(true);
-    if (diff < -30) setIsSwiped(false);
-  }
 
   function handleToggle() {
-    if (isSwiped) { setIsSwiped(false); return; }
     setCheckAnim(true);
     onToggle(item.cartItemId, !item.isChecked);
     setTimeout(() => setCheckAnim(false), 350);
@@ -84,30 +72,16 @@ function CartItemCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl anim-item-in"
+      className="relative rounded-2xl anim-item-in"
       style={{ animationDelay: `${index * 45}ms` }}
     >
-      <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-red-500 to-rose-400 rounded-r-2xl flex flex-col items-center justify-center gap-1">
-        <button
-          onClick={() => onDelete(item.cartItemId)}
-          className="flex flex-col items-center gap-1 text-white"
-          aria-label="삭제"
-        >
-          <Trash2 className="w-5 h-5" />
-          <span className="text-[10px] font-bold">삭제</span>
-        </button>
-      </div>
-
       <div
         className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all duration-200
           ${item.isChecked
             ? "bg-gray-50 border-gray-100"
             : "bg-white border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
           }
-          ${isSwiped ? "-translate-x-20" : "translate-x-0"}
         `}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
         onClick={handleToggle}
       >
         <div

@@ -11,7 +11,6 @@ type FridgeItemCardProps = {
   onLongPress: (fridgeId: number) => void;
   onSelect: (fridgeId: number) => void;
   onEditPress: (item: FridgeItem) => void;
-  onDelete: (fridgeId: number) => void;
 };
 
 function formatKoreanDate(dateStr: string) {
@@ -54,7 +53,6 @@ export default function FridgeItemCard({
   onLongPress,
   onSelect,
   onEditPress,
-  onDelete,
 }: FridgeItemCardProps) {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
