@@ -15,7 +15,7 @@ export default function LoginLoadingPage() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-[#f2f4f7] text-[#111111]">
+    <main className="min-h-screen bg-[#F4F7EF] text-[#111111]">
       <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col items-center justify-center bg-white px-6 py-10 text-center">
         <div className="mb-6 h-11 w-11 animate-spin rounded-full border-4 border-[#d9ece0] border-t-[#118d3f]" />
         <h1 className="text-2xl font-extrabold tracking-[-0.04em]">

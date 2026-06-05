@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Check, Plus, Flame } from "lucide-react";
 import { RecipeListItem, IngredientSummary } from "@/types/recipe";
 import MatchingRing from "@/components/recipe/MatchingRing";
+import RecipePlaceholder from "@/components/recipe/RecipePlaceholder";
 import {
   calcMatchRate,
   getShortageIngredients,
@@ -65,9 +66,7 @@ export default function RecipeCard({
         style={{ width: 86, height: 86, borderRadius: 13 }}
       >
         {imgError || !recipe.thumbnailUrl ? (
-          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-            <span className="text-3xl">🍽️</span>
-          </div>
+          <RecipePlaceholder title={recipe.title} />
         ) : (
           <Image
             src={recipe.thumbnailUrl}
@@ -109,14 +108,33 @@ export default function RecipeCard({
 
       {/* [B] 우측 정보 열 */}
       <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-        {/* 1줄: 제목 + 매칭률 링 */}
+        {/* 1줄: (제목 + 조리시간·상태) + 매칭률 링 */}
         <div className="flex items-start gap-2">
-          <h3
-            className="flex-1 font-extrabold leading-snug line-clamp-2 min-w-0"
-            style={{ fontSize: 16, color: "#16201A" }}
-          >
-            {recipe.title}
-          </h3>
+          <div className="flex-1 min-w-0">
+            <h3
+              className="font-extrabold leading-snug line-clamp-2"
+              style={{ fontSize: 16, color: "#16201A" }}
+            >
+              {recipe.title}
+            </h3>
+            <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: "#5B6B60" }}>
+              🕒 {recipe.cookTimeMin}분
+              {hasIngredientData && (
+                <>
+                  {" · "}
+                  {shortage.length > 0 ? (
+                    <span className="font-bold" style={{ color: "#B5631A" }}>
+                      {shortage.length}개 부족
+                    </span>
+                  ) : (
+                    <span className="font-bold" style={{ color: "#0D7A37" }}>
+                      바로 가능
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
+          </div>
           {hasIngredientData && (
             <div className="shrink-0">
               <MatchingRing pct={rate} />
@@ -124,26 +142,7 @@ export default function RecipeCard({
           )}
         </div>
 
-        {/* 2줄: 조리시간 · 부족/가능 상태 */}
-        <p className="text-xs whitespace-nowrap" style={{ color: "#5B6B60" }}>
-          🕒 {recipe.cookTimeMin}분
-          {hasIngredientData && (
-            <>
-              {" · "}
-              {shortage.length > 0 ? (
-                <span className="font-bold" style={{ color: "#B5631A" }}>
-                  {shortage.length}개 부족
-                </span>
-              ) : (
-                <span className="font-bold" style={{ color: "#0D7A37" }}>
-                  바로 가능
-                </span>
-              )}
-            </>
-          )}
-        </p>
-
-        {/* 3줄: 재료 칩 */}
+        {/* 2줄: 재료 칩 */}
         <div className="flex flex-wrap gap-1">
           {visibleChips.map((chip) => {
             const isShortage = chip.fridgeStatus === "NONE";

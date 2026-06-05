@@ -377,11 +377,11 @@ export default function CartPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="flex min-h-screen justify-center bg-gray-50">
-        <div className="w-full max-w-sm bg-gray-50 min-h-screen flex flex-col">
+      <div className="flex min-h-screen justify-center bg-[#F4F7EF]">
+        <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen flex flex-col">
 
           {/* ── 헤더 ── */}
-          <div className="bg-white px-5 pt-10 pb-4 shadow-[0_1px_0_rgba(0,0,0,0.06)] shrink-0">
+          <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-4 shadow-[0_1px_0_#E6ECDF] shrink-0">
             {view === "add" ? (
               <div className="flex items-center gap-3 anim-view-in">
                 <button
@@ -391,11 +391,11 @@ export default function CartPage() {
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
-                <h1 className="text-xl font-extrabold text-gray-950">재료 추가</h1>
+                <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>재료 추가</h1>
               </div>
             ) : (
               <div className="flex items-center justify-between anim-view-in">
-                <h1 className="text-xl font-extrabold text-gray-950">장바구니</h1>
+                <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>장바구니</h1>
                 {items.length > 0 && (
                   <span className="flex items-center gap-1.5 bg-green-50 text-green-700 text-[12px] font-bold px-3 py-1 rounded-full border border-green-200">
                     <ShoppingCart className="w-3.5 h-3.5" />

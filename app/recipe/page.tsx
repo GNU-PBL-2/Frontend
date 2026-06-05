@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Sparkles, Flame, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
@@ -10,7 +10,7 @@ import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 import { sortRecipes } from "@/utils/recipeHelpers";
-import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS, SORT_CYCLE } from "@/types/recipe";
+import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS, SORT_SUBTITLES, SORT_CYCLE } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
@@ -155,10 +155,26 @@ export default function RecipePage() {
     }
   }
 
-  const sortedRecipes = useMemo(
-    () => sortRecipes(recipes, activeSort),
-    [recipes, activeSort]
-  );
+  const sortedRecipes = useMemo(() => {
+    const unique = [...new Map(recipes.map((r) => [r.id, r])).values()];
+    return sortRecipes(unique, activeSort);
+  }, [recipes, activeSort]);
+
+  // 무한 스크롤 — 센티널이 뷰포트에 들어오면 다음 페이지 로드
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const handleLoadMoreRef = useRef(handleLoadMore);
+  handleLoadMoreRef.current = handleLoadMore;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) handleLoadMoreRef.current(); },
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
@@ -222,7 +238,7 @@ export default function RecipePage() {
 
   return (
     <div className="min-h-screen flex justify-center" style={{ background: "#F4F7EF" }}>
-      <div className="w-full max-w-sm bg-white min-h-screen">
+      <div className="w-full max-w-sm min-h-screen">
 
         {/* 스티키 헤더 */}
         <div className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]">
@@ -367,7 +383,7 @@ export default function RecipePage() {
           {!isLoading && recipes.length > 0 && (
             <div className="flex items-center justify-between px-4 pb-2">
               <span style={{ fontSize: 13.5, fontWeight: 800, color: "#16201A" }}>
-                지금 만들 수 있어요
+                {SORT_SUBTITLES[activeSort]}
               </span>
               <button
                 onClick={handleCycleSort}
@@ -432,19 +448,13 @@ export default function RecipePage() {
                 />
               ))}
 
+              {/* 무한 스크롤 센티널 */}
               {!isLast && (
-                <button
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  className="w-full py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-500 font-semibold disabled:opacity-50 transition-opacity"
-                >
-                  {isLoadingMore ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin inline-block" />
-                      불러오는 중
-                    </span>
-                  ) : "더보기"}
-                </button>
+                <div ref={sentinelRef} className="py-4 flex justify-center">
+                  {isLoadingMore && (
+                    <span className="w-5 h-5 border-2 border-[#1AA64E] border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
               )}
             </>
           )}
