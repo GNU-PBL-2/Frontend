@@ -27,7 +27,7 @@ export const SORT_LABELS: Record<SortOption, string> = {
 };
 
 export const SORT_SUBTITLES: Record<SortOption, string> = {
-  MATCH_RATE: "지금 만들 수 있어요 ✓",
+  MATCH_RATE: "지금 만들 수 있어요",
   COOK_TIME: "금방 뚝딱 만들어요",
   EXPIRING_COUNT: "냉장고를 비워봐요",
 };
