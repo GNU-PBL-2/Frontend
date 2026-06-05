@@ -26,6 +26,12 @@ export const SORT_LABELS: Record<SortOption, string> = {
   EXPIRING_COUNT: "임박 재료 많은순",
 };
 
+export const SORT_SUBTITLES: Record<SortOption, string> = {
+  MATCH_RATE: "지금 만들 수 있어요 ✓",
+  COOK_TIME: "금방 뚝딱 만들어요",
+  EXPIRING_COUNT: "냉장고를 비워봐요",
+};
+
 export const SORT_CYCLE: SortOption[] = ["MATCH_RATE", "COOK_TIME", "EXPIRING_COUNT"];
 
 // 레시피에 포함된 재료 1개 (백엔드 구조 그대로)
