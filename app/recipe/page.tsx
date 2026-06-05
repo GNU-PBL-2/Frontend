@@ -10,7 +10,7 @@ import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 import { sortRecipes } from "@/utils/recipeHelpers";
-import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS, SORT_CYCLE } from "@/types/recipe";
+import { RecipeListItem, RecipeFilterType, IngredientSummary, SortOption, SORT_LABELS, SORT_SUBTITLES, SORT_CYCLE } from "@/types/recipe";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import BottomNav from "@/components/BottomNav";
 import Toast from "@/components/Toast";
@@ -383,7 +383,7 @@ export default function RecipePage() {
           {!isLoading && recipes.length > 0 && (
             <div className="flex items-center justify-between px-4 pb-2">
               <span style={{ fontSize: 13.5, fontWeight: 800, color: "#16201A" }}>
-                지금 만들 수 있어요
+                {SORT_SUBTITLES[activeSort]}
               </span>
               <button
                 onClick={handleCycleSort}
