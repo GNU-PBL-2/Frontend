@@ -40,7 +40,6 @@ function getPalette(title: string): Palette {
 
 export default function RecipePlaceholder({ title }: { title: string }) {
   const { bright, deep, ink } = getPalette(title);
-  const label = title.length <= 7 ? title : `${title.slice(0, 6)}…`;
 
   return (
     <div
@@ -74,9 +73,14 @@ export default function RecipePlaceholder({ title }: { title: string }) {
             opacity: 0.7,
             color: ink,
             lineHeight: 1,
+            display: "block",
+            maxWidth: "68px",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
           }}
         >
-          {label || "음식 사진"}
+          {title || "음식 사진"}
         </span>
       </div>
     </div>
