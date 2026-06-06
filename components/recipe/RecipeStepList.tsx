@@ -5,7 +5,7 @@ type RecipeStepListProps = {
 };
 
 export default function RecipeStepList({ steps }: RecipeStepListProps) {
-  const sortedSteps = [...steps].sort((a, b) => a.stepOrder - b.stepOrder);
+  const sortedSteps = [...(steps ?? [])].sort((a, b) => a.stepOrder - b.stepOrder);
 
   return (
     <div className="mb-6">

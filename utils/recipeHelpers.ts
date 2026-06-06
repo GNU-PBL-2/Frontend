@@ -8,6 +8,7 @@ export function calcMatchRate(ingredients: IngredientSummary[]): {
   owned: number;
   total: number;
 } {
+  if (!ingredients) return { rate: 0, owned: 0, total: 0 };
   const total = ingredients.length;
   if (total === 0) return { rate: 0, owned: 0, total: 0 };
   const owned = ingredients.filter((i) => i.fridgeStatus !== "NONE").length;
@@ -16,17 +17,17 @@ export function calcMatchRate(ingredients: IngredientSummary[]): {
 
 // 부족 재료 (냉장고에 없는 것)
 export function getShortageIngredients(ingredients: IngredientSummary[]): IngredientSummary[] {
-  return ingredients.filter((i) => i.fridgeStatus === "NONE");
+  return (ingredients ?? []).filter((i) => i.fridgeStatus === "NONE");
 }
 
 // 보유 재료 (ENOUGH 또는 EXPIRING)
 export function getOwnedIngredients(ingredients: IngredientSummary[]): IngredientSummary[] {
-  return ingredients.filter((i) => i.fridgeStatus !== "NONE");
+  return (ingredients ?? []).filter((i) => i.fridgeStatus !== "NONE");
 }
 
 // 임박 재료 포함 여부 (EXPIRING 상태인 재료가 하나라도 있으면 true)
 export function hasExpiringIngredient(ingredients: IngredientSummary[]): boolean {
-  return ingredients.some((i) => i.fridgeStatus === "EXPIRING");
+  return (ingredients ?? []).some((i) => i.fridgeStatus === "EXPIRING");
 }
 
 // 정렬 옵션에 따라 레시피 목록 정렬 (원본 배열 변경 없음)

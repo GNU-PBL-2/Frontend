@@ -33,7 +33,12 @@ export async function fetchRecipes(params: {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`레시피 목록 로드 실패: ${res.status}`);
-  return res.json();
+  const data: RecipePage = await res.json();
+  data.content = (data.content ?? []).map((r) => ({
+    ...r,
+    ingredients: r.ingredients ?? [],
+  }));
+  return data;
 }
 
 export async function fetchRecipeDetail(id: number): Promise<Recipe> {
@@ -41,7 +46,12 @@ export async function fetchRecipeDetail(id: number): Promise<Recipe> {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`레시피 상세 로드 실패: ${res.status}`);
-  return res.json();
+  const data: Recipe = await res.json();
+  return {
+    ...data,
+    ingredients: data.ingredients ?? [],
+    steps: data.steps ?? [],
+  };
 }
 
 export async function addFavorite(recipeId: number): Promise<void> {

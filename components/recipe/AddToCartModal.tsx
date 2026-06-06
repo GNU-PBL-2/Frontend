@@ -68,7 +68,7 @@ export default function AddToCartModal({
 
         {/* 재료 목록 */}
         <div className="flex flex-col gap-2 mb-6">
-          {ingredients.map((ing) => (
+          {(ingredients ?? []).map((ing) => (
             <button
               key={ing.ingredientId}
               onClick={() => handleToggle(ing.ingredientId)}
