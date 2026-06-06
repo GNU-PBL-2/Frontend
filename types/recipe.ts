@@ -1,6 +1,13 @@
 // 백엔드 FridgeStatus enum과 동일
 export type FridgeStatus = "NONE" | "ENOUGH" | "EXPIRING";
 
+// 레시피 목록 카드용 재료 요약 (백엔드 IngredientSummary와 동일)
+export type IngredientSummary = {
+  ingredientId: number;
+  name: string;
+  fridgeStatus: FridgeStatus;
+};
+
 // 레시피 분류
 export type RecipeCategory = "한식" | "중식" | "일식" | "양식" | "분식" | "기타";
 
@@ -9,6 +16,23 @@ export type RecipeTaste = "매운맛" | "단맛" | "짠맛" | "신맛" | "고소
 
 // 필터 탭
 export type RecipeFilterType = "전체" | "임박우선" | "조리가능" | "즐겨찾기";
+
+// 정렬 옵션
+export type SortOption = "MATCH_RATE" | "COOK_TIME" | "EXPIRING_COUNT";
+
+export const SORT_LABELS: Record<SortOption, string> = {
+  MATCH_RATE: "매칭률 높은순",
+  COOK_TIME: "조리시간 짧은순",
+  EXPIRING_COUNT: "임박 재료 많은순",
+};
+
+export const SORT_SUBTITLES: Record<SortOption, string> = {
+  MATCH_RATE: "지금 만들 수 있어요",
+  COOK_TIME: "금방 뚝딱 만들어요",
+  EXPIRING_COUNT: "냉장고를 비워봐요",
+};
+
+export const SORT_CYCLE: SortOption[] = ["MATCH_RATE", "COOK_TIME", "EXPIRING_COUNT"];
 
 // 레시피에 포함된 재료 1개 (백엔드 구조 그대로)
 export type RecipeIngredient = {
@@ -50,6 +74,7 @@ export type RecipeListItem = {
   cookable: boolean;
   expiringIngredientCount: number;
   isFavorite: boolean;
+  ingredients: IngredientSummary[];
 };
 
 // Spring Page 응답 래퍼

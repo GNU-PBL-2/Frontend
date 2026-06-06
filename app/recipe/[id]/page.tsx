@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { fetchRecipeDetail, addFavorite, removeFavorite } from "@/lib/recipeApi";
+import { addCartItems } from "@/lib/cartApi";
 import { Recipe, RecipeIngredient } from "@/types/recipe";
 import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
@@ -84,14 +85,25 @@ export default function RecipeDetailPage() {
     }
   }
 
-  function handleCartConfirm(selected: RecipeIngredient[]) {
-    const names = selected.map((ing) => ing.name).join(", ");
-    showToast(`${names}이/가 장바구니에 추가되었습니다`);
+  async function handleCartConfirm(selected: RecipeIngredient[]) {
+    await addCartItems(
+      selected.map((ing) => {
+        const parsed = Math.round(parseFloat(ing.amount));
+        const quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed;
+        return {
+          ingredientId: ing.ingredientId,
+          name: ing.name,
+          quantity,
+          unit: ing.unit || null,
+        };
+      })
+    );
+    showToast(`${selected.length}개 재료를 장바구니에 담았어요`);
   }
 
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen flex justify-center">
+      <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
         <DetailSkeleton />
       </div>
     );
@@ -117,11 +129,11 @@ export default function RecipeDetailPage() {
     .every((ing) => ing.fridgeStatus !== "NONE");
 
   return (
-    <div className="bg-white min-h-screen flex justify-center">
+    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
       <div className="w-full max-w-sm relative">
 
-        {/* 히어로 이미지 */}
-        <div className="relative w-full h-72 bg-gray-200">
+        {/* 히어로 이미지 — sticky: 스크롤해도 고정, 콘텐츠 카드(z-10)가 위로 덮음 */}
+        <div className="sticky top-0 w-full h-72 bg-gray-200">
           {imgError || !recipe.thumbnailUrl ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
               <span className="text-8xl">🍽️</span>

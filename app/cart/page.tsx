@@ -1,14 +1,21 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
 import { ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator, Trash2, X } from "lucide-react";
+import {
+  CartItem,
+  fetchCartItems,
+  addCartItems,
+  updateCartItem,
+  deleteCartItem,
+  deleteCartItems,
+} from "@/lib/cartApi";
 import { fetchMasterIngredients, createFridgeItem, type MasterIngredient } from "@/lib/fridgeApi";
 import { getUserIdFromToken } from "@/utils/auth";
 import { useToast } from "@/hooks/useToast";
 import Toast from "@/components/Toast";
 
-// ── 애니메이션 ────────────────────────────────────────────────────
 const STYLES = `
   @keyframes item-in {
     from { opacity: 0; transform: translateY(10px); }
@@ -32,12 +39,11 @@ const STYLES = `
   .anim-fade-in  { animation: fade-in 0.2s ease both; }
 `;
 
-// ── 타입 ──────────────────────────────────────────────────────────
-type CartItem = {
-  id: number;
+// 드래프트 아이템 (add 뷰 전용, 아직 백엔드에 저장 안 된 임시 항목)
+type DraftItem = {
+  tempId: number;
   name: string;
   quantity: number;
-  checked: boolean;
 };
 
 type CartView = "cart" | "add";
@@ -48,93 +54,60 @@ function CartItemCard({
   index,
   onToggle,
   onQuantityChange,
-  onDelete,
 }: {
   item: CartItem;
   index: number;
-  onToggle: (id: number) => void;
-  onQuantityChange: (id: number, delta: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: number, checked: boolean) => void;
+  onQuantityChange: (id: number, newQty: number) => void;
 }) {
-  const [isSwiped, setIsSwiped] = useState(false);
   const [checkAnim, setCheckAnim] = useState(false);
-  const touchStartX = useRef(0);
-
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-  function handleTouchEnd(e: React.TouchEvent) {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setIsSwiped(true);
-    if (diff < -30) setIsSwiped(false);
-  }
 
   function handleToggle() {
-    if (isSwiped) { setIsSwiped(false); return; }
     setCheckAnim(true);
-    onToggle(item.id);
+    onToggle(item.cartItemId, !item.isChecked);
     setTimeout(() => setCheckAnim(false), 350);
   }
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl anim-item-in"
+      className="relative rounded-2xl anim-item-in"
       style={{ animationDelay: `${index * 45}ms` }}
     >
-      {/* 스와이프 삭제 */}
-      <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-red-500 to-rose-400 rounded-r-2xl flex flex-col items-center justify-center gap-1">
-        <button
-          onClick={() => onDelete(item.id)}
-          className="flex flex-col items-center gap-1 text-white"
-          aria-label="삭제"
-        >
-          <Trash2 className="w-5 h-5" />
-          <span className="text-[10px] font-bold">삭제</span>
-        </button>
-      </div>
-
-      {/* 카드 */}
       <div
         className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all duration-200
-          ${item.checked
+          ${item.isChecked
             ? "bg-gray-50 border-gray-100"
             : "bg-white border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
           }
-          ${isSwiped ? "-translate-x-20" : "translate-x-0"}
         `}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
         onClick={handleToggle}
       >
-        {/* 체크박스 */}
         <div
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200
             [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)]
             ${checkAnim ? "scale-125" : "scale-100"}
-            ${item.checked ? "bg-green-600 border-green-600" : "border-gray-300 bg-white"}
+            ${item.isChecked ? "bg-green-600 border-green-600" : "border-gray-300 bg-white"}
           `}
         >
-          {item.checked && (
+          {item.isChecked && (
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
         </div>
 
-        {/* 이름 */}
         <p className={`flex-1 text-[15px] font-semibold truncate transition-colors duration-200
-          ${item.checked ? "text-gray-400 line-through" : "text-gray-900"}`}
+          ${item.isChecked ? "text-gray-400 line-through" : "text-gray-900"}`}
         >
           {item.name}
+          {item.unit && (
+            <span className="ml-1 text-xs text-gray-400 font-normal">{item.unit}</span>
+          )}
         </p>
 
-        {/* 수량 컨트롤 */}
-        <div
-          className="flex items-center gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => onQuantityChange(item.id, -1)}
+            onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
             className="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center
               active:scale-90 transition-transform duration-100 text-gray-500"
           >
@@ -144,7 +117,7 @@ function CartItemCard({
             {item.quantity}
           </span>
           <button
-            onClick={() => onQuantityChange(item.id, 1)}
+            onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
             className="w-7 h-7 rounded-full border border-green-500 bg-green-50 flex items-center justify-center
               active:scale-90 transition-transform duration-100 text-green-600"
           >
@@ -162,7 +135,7 @@ function DraftItemCard({
   index,
   onChange,
 }: {
-  item: CartItem;
+  item: DraftItem;
   index: number;
   onChange: (id: number, delta: number) => void;
 }) {
@@ -178,7 +151,7 @@ function DraftItemCard({
       <p className="flex-1 text-[15px] font-semibold text-gray-900 truncate">{item.name}</p>
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onChange(item.id, -1)}
+          onClick={() => onChange(item.tempId, -1)}
           className="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center
             active:scale-90 transition-transform duration-100 text-gray-500"
         >
@@ -186,7 +159,7 @@ function DraftItemCard({
         </button>
         <span className="text-[14px] font-bold text-gray-800 w-8 text-center">{item.quantity}</span>
         <button
-          onClick={() => onChange(item.id, 1)}
+          onClick={() => onChange(item.tempId, 1)}
           className="w-7 h-7 rounded-full border border-amber-400 bg-amber-50 flex items-center justify-center
             active:scale-90 transition-transform duration-100 text-amber-600"
         >
@@ -201,64 +174,107 @@ function DraftItemCard({
 export default function CartPage() {
   const [view, setView] = useState<CartView>("cart");
   const [items, setItems] = useState<CartItem[]>([]);
-  const [draftItems, setDraftItems] = useState<CartItem[]>([]);
+  const [isLoadingCart, setIsLoadingCart] = useState(true);
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [masterIngredients, setMasterIngredients] = useState<MasterIngredient[]>([]);
   const [addingToFridge, setAddingToFridge] = useState(false);
   const { toastMessage, toastVisible, showToast } = useToast();
 
-  const checkedItems = items.filter((i) => i.checked);
+  // 수량 변경 debounce용 타이머
+  const quantityTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const checkedItems = items.filter((i) => i.isChecked);
   const checkedCount = checkedItems.length;
 
-  useEffect(() => {
-    fetchMasterIngredients().then(setMasterIngredients).catch(() => {});
+  // 마운트 시 백엔드에서 장바구니 로드
+  const loadCart = useCallback(async () => {
+    setIsLoadingCart(true);
+    try {
+      const data = await fetchCartItems();
+      setItems(data);
+    } catch {
+      showToast("장바구니를 불러오지 못했어요");
+    } finally {
+      setIsLoadingCart(false);
+    }
   }, []);
 
-  // ── 헬퍼 ──
-  function appendItem(target: CartItem[], name: string): CartItem[] {
-    const existing = target.find((i) => i.name === name);
-    if (existing) {
-      return target.map((i) =>
-        i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i
-      );
-    }
-    return [...target, { id: Date.now() + Math.random(), name, quantity: 1, checked: false }];
-  }
+  useEffect(() => {
+    loadCart();
+    fetchMasterIngredients().then(setMasterIngredients).catch(() => {});
+  }, [loadCart]);
 
   // ── cart 뷰 핸들러 ──
-  function handleToggle(id: number) {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, checked: !i.checked } : i)));
-  }
 
-  function handleQuantityChange(id: number, delta: number) {
+  async function handleToggle(cartItemId: number, isChecked: boolean) {
+    // 낙관적 업데이트
     setItems((prev) =>
-      prev.flatMap((i) => {
-        if (i.id !== id) return [i];
-        const next = i.quantity + delta;
-        return next <= 0 ? [] : [{ ...i, quantity: next }];
-      })
+      prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked } : i))
     );
+    try {
+      await updateCartItem(cartItemId, { isChecked });
+    } catch {
+      // 실패 시 롤백
+      setItems((prev) =>
+        prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked: !isChecked } : i))
+      );
+      showToast("상태 변경에 실패했어요");
+    }
   }
 
-  function handleDelete(id: number) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  function handleQuantityChange(cartItemId: number, newQty: number) {
+    if (newQty <= 0) {
+      handleDelete(cartItemId);
+      return;
+    }
+    // 낙관적 업데이트
+    setItems((prev) =>
+      prev.map((i) => (i.cartItemId === cartItemId ? { ...i, quantity: newQty } : i))
+    );
+    // debounce: 500ms 후 API 호출
+    clearTimeout(quantityTimers.current[cartItemId]);
+    quantityTimers.current[cartItemId] = setTimeout(async () => {
+      try {
+        await updateCartItem(cartItemId, { quantity: newQty });
+      } catch {
+        showToast("수량 변경에 실패했어요");
+        loadCart();
+      }
+    }, 500);
   }
 
-  function handleDeleteChecked() {
+  async function handleDelete(cartItemId: number) {
+    const snapshot = items;
+    setItems((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
+    try {
+      await deleteCartItem(cartItemId);
+    } catch {
+      setItems(snapshot);
+      showToast("삭제에 실패했어요");
+    }
+  }
+
+  async function handleDeleteChecked() {
     if (checkedCount === 0) return;
-    setItems((prev) => prev.filter((i) => !i.checked));
+    const ids = checkedItems.map((i) => i.cartItemId);
+    const snapshot = items;
+    setItems((prev) => prev.filter((i) => !i.isChecked));
+    try {
+      await deleteCartItems(ids);
+      showToast(`${ids.length}개를 삭제했어요`);
+    } catch {
+      setItems(snapshot);
+      showToast("삭제에 실패했어요");
+    }
   }
 
   async function handleAddToFridge() {
     if (checkedCount === 0 || addingToFridge) return;
     const memberId = getUserIdFromToken();
-    if (!memberId) {
-      showToast("로그인이 필요합니다");
-      return;
-    }
+    if (!memberId) { showToast("로그인이 필요합니다"); return; }
 
     setAddingToFridge(true);
-
     const defaultExpiry = (() => {
       const d = new Date();
       d.setDate(d.getDate() + 7);
@@ -271,60 +287,80 @@ export default function CartPage() {
 
     await Promise.allSettled(
       checkedItems.map(async (cartItem) => {
-        const master = nameToIngredient.get(cartItem.name);
-        if (!master) {
-          missing.push(cartItem.name);
-          return;
-        }
+        // ingredientId가 있으면 바로 사용, 없으면 이름으로 마스터 매칭
+        const ingredientId =
+          cartItem.ingredientId ?? nameToIngredient.get(cartItem.name)?.ingredientId;
+
+        if (!ingredientId) { missing.push(cartItem.name); return; }
+
         await createFridgeItem({
           memberId,
-          ingredientId: master.ingredientId,
+          ingredientId,
           quantity: cartItem.quantity,
-          unit: "개",
+          unit: cartItem.unit ?? "개",
           expiryDate: defaultExpiry,
         });
-        succeeded.push(cartItem.id);
+        succeeded.push(cartItem.cartItemId);
       })
     );
 
     if (succeeded.length > 0) {
-      setItems((prev) => prev.filter((i) => !succeeded.includes(i.id)));
-      showToast(`${succeeded.length}개 품목을 냉장고에 추가했어요`);
-    } else if (missing.length > 0) {
-      showToast("등록된 재료명만 냉장고에 추가할 수 있어요");
-    } else {
-      showToast("냉장고 추가에 실패했어요");
+      const ids = succeeded;
+      setItems((prev) => prev.filter((i) => !ids.includes(i.cartItemId)));
+      await deleteCartItems(ids).catch(() => {});
+      showToast(`${succeeded.length}개를 냉장고에 추가했어요`);
+    }
+    if (missing.length > 0) {
+      showToast(`${missing.join(", ")}은/는 등록된 재료가 아니에요`);
     }
     setAddingToFridge(false);
   }
 
   // ── add 뷰 핸들러 ──
+
   function handleAddDraftItem() {
     const name = searchKeyword.trim();
     if (!name) return;
-    setDraftItems((prev) => appendItem(prev, name));
+    setDraftItems((prev) => {
+      const existing = prev.find((i) => i.name === name);
+      if (existing) {
+        return prev.map((i) =>
+          i.name === name ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      }
+      return [...prev, { tempId: Date.now(), name, quantity: 1 }];
+    });
     setSearchKeyword("");
   }
 
-  function handleDraftQuantityChange(id: number, delta: number) {
+  function handleDraftQuantityChange(tempId: number, delta: number) {
     setDraftItems((prev) =>
       prev.flatMap((i) => {
-        if (i.id !== id) return [i];
+        if (i.tempId !== tempId) return [i];
         const next = i.quantity + delta;
         return next <= 0 ? [] : [{ ...i, quantity: next }];
       })
     );
   }
 
-  function handleCompleteAdd() {
+  async function handleCompleteAdd() {
     if (draftItems.length > 0) {
-      setItems((prev) => {
-        let next = [...prev];
-        draftItems.forEach((d) => {
-          for (let i = 0; i < d.quantity; i++) next = appendItem(next, d.name);
+      try {
+        const added = await addCartItems(
+          draftItems.map((d) => ({ name: d.name, quantity: d.quantity }))
+        );
+        // 기존 items와 병합: 같은 이름이면 백엔드가 수량을 합산했으므로 교체
+        setItems((prev) => {
+          const updatedNames = new Set(added.map((a) => a.name));
+          return [
+            ...prev.filter((i) => !updatedNames.has(i.name)),
+            ...added,
+          ];
         });
-        return next;
-      });
+        showToast(`${draftItems.length}개 재료를 추가했어요`);
+      } catch {
+        showToast("추가에 실패했어요");
+      }
     }
     setDraftItems([]);
     setSearchKeyword("");
@@ -341,11 +377,11 @@ export default function CartPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="flex min-h-screen justify-center bg-gray-50">
-        <div className="w-full max-w-sm bg-gray-50 min-h-screen flex flex-col">
+      <div className="flex min-h-screen justify-center bg-[#F4F7EF]">
+        <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen flex flex-col">
 
           {/* ── 헤더 ── */}
-          <div className="bg-white px-5 pt-10 pb-4 shadow-[0_1px_0_rgba(0,0,0,0.06)] shrink-0">
+          <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-4 shadow-[0_1px_0_#E6ECDF] shrink-0">
             {view === "add" ? (
               <div className="flex items-center gap-3 anim-view-in">
                 <button
@@ -355,11 +391,11 @@ export default function CartPage() {
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
-                <h1 className="text-xl font-extrabold text-gray-950">재료 추가</h1>
+                <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>재료 추가</h1>
               </div>
             ) : (
               <div className="flex items-center justify-between anim-view-in">
-                <h1 className="text-xl font-extrabold text-gray-950">장바구니</h1>
+                <h1 className="font-extrabold" style={{ fontSize: 27, color: "#16201A" }}>장바구니</h1>
                 {items.length > 0 && (
                   <span className="flex items-center gap-1.5 bg-green-50 text-green-700 text-[12px] font-bold px-3 py-1 rounded-full border border-green-200">
                     <ShoppingCart className="w-3.5 h-3.5" />
@@ -376,7 +412,6 @@ export default function CartPage() {
             {/* === ADD 뷰 === */}
             {view === "add" && (
               <div className="space-y-4 anim-view-in">
-                {/* 검색 인풋 */}
                 <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
                   shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200">
                   <Search className="w-4 h-4 text-gray-400 shrink-0" />
@@ -396,13 +431,12 @@ export default function CartPage() {
                   )}
                 </div>
 
-                {/* 드래프트 아이템 */}
                 {draftItems.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-[12px] font-semibold text-gray-400 px-1">추가할 재료 목록</p>
                     {draftItems.map((item, i) => (
                       <DraftItemCard
-                        key={item.id}
+                        key={item.tempId}
                         item={item}
                         index={i}
                         onChange={handleDraftQuantityChange}
@@ -411,7 +445,6 @@ export default function CartPage() {
                   </div>
                 )}
 
-                {/* 빈 상태 (아무것도 없을 때) */}
                 {draftItems.length === 0 && !searchKeyword && (
                   <div className="flex flex-col items-center justify-center py-16 gap-3 anim-fade-in">
                     <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center">
@@ -426,8 +459,13 @@ export default function CartPage() {
             {/* === CART 뷰 === */}
             {view === "cart" && (
               <>
-                {items.length === 0 ? (
-                  /* 빈 상태 */
+                {isLoadingCart ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-16 rounded-2xl skeleton" />
+                    ))}
+                  </div>
+                ) : items.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-24 gap-4 anim-fade-in">
                     <div className="w-20 h-20 rounded-3xl bg-green-100 flex items-center justify-center">
                       <ShoppingCart className="w-10 h-10 text-green-600" strokeWidth={1.4} />
@@ -447,16 +485,16 @@ export default function CartPage() {
                     </button>
                   </div>
                 ) : (
-                  /* 아이템 목록 */
                   <div className="space-y-3 anim-view-in">
-                    {/* 선택 상태 요약 */}
                     {checkedCount > 0 && (
                       <div className="flex items-center justify-between px-1 anim-fade-in">
                         <span className="text-[13px] font-semibold text-green-700">
                           {checkedCount}개 선택됨
                         </span>
                         <button
-                          onClick={() => setItems((prev) => prev.map((i) => ({ ...i, checked: false })))}
+                          onClick={() =>
+                            checkedItems.forEach((i) => handleToggle(i.cartItemId, false))
+                          }
                           className="text-[12px] text-gray-400 active:text-gray-700"
                         >
                           선택 해제
@@ -466,12 +504,11 @@ export default function CartPage() {
 
                     {items.map((item, i) => (
                       <CartItemCard
-                        key={item.id}
+                        key={item.cartItemId}
                         item={item}
                         index={i}
                         onToggle={handleToggle}
                         onQuantityChange={handleQuantityChange}
-                        onDelete={handleDelete}
                       />
                     ))}
                   </div>
@@ -483,7 +520,6 @@ export default function CartPage() {
           {/* ── 하단 액션바 ── */}
           <div className="shrink-0 px-4 pb-24 pt-2 space-y-2">
             {view === "add" ? (
-              /* Add 뷰 버튼 */
               <>
                 <button
                   onClick={handleAddDraftItem}
@@ -504,7 +540,6 @@ export default function CartPage() {
                 </button>
               </>
             ) : checkedCount > 0 ? (
-              /* 선택 상태 버튼 */
               <div className="flex gap-2">
                 <button
                   onClick={handleAddToFridge}
@@ -528,7 +563,6 @@ export default function CartPage() {
                 </button>
               </div>
             ) : (
-              /* 기본 버튼 */
               <button
                 onClick={openAddView}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl

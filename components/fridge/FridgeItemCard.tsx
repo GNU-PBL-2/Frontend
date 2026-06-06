@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { FridgeItem } from "@/lib/fridgeApi";
 import { getDaysLeft } from "@/utils/expiryHelpers";
 
@@ -11,7 +11,6 @@ type FridgeItemCardProps = {
   onLongPress: (fridgeId: number) => void;
   onSelect: (fridgeId: number) => void;
   onEditPress: (item: FridgeItem) => void;
-  onDelete: (fridgeId: number) => void;
 };
 
 function formatKoreanDate(dateStr: string) {
@@ -54,10 +53,7 @@ export default function FridgeItemCard({
   onLongPress,
   onSelect,
   onEditPress,
-  onDelete,
 }: FridgeItemCardProps) {
-  const [isSwiped, setIsSwiped] = useState(false);
-  const touchStartX = useRef<number>(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const daysLeft = getDaysLeft(item.expiryDate);
@@ -65,18 +61,14 @@ export default function FridgeItemCard({
   const qLevel   = getQuantityLevel(item.quantity, item.unit);
   const qColor   = QUANTITY_COLOR[qLevel];
 
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
+  function handleTouchStart() {
     longPressTimer.current = setTimeout(() => {
       if (!isSelectMode) onLongPress(item.fridgeId);
     }, 500);
   }
 
-  function handleTouchEnd(e: React.TouchEvent) {
+  function handleTouchEnd() {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 60)  setIsSwiped(true);
-    if (diff < -30) setIsSwiped(false);
   }
 
   function handleTouchMove() {
@@ -84,31 +76,12 @@ export default function FridgeItemCard({
   }
 
   function handleCardTap() {
-    if (isSwiped) { setIsSwiped(false); return; }
     if (isSelectMode) onSelect(item.fridgeId);
     else onEditPress(item);
   }
 
-  function handleDeleteRequest() {
-    const confirmed = window.confirm(`"${item.ingredientName}"을(를) 삭제할까요?`);
-    if (confirmed) onDelete(item.fridgeId);
-    setIsSwiped(false);
-  }
-
   return (
-    <div className="relative overflow-hidden rounded-2xl">
-
-      {/* 스와이프 삭제 버튼 */}
-      <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-red-500 to-rose-400 rounded-r-2xl flex flex-col items-center justify-center gap-1">
-        <button onClick={handleDeleteRequest} aria-label="재료 삭제" className="flex flex-col items-center gap-1 text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          <span className="text-[10px] font-bold">삭제</span>
-        </button>
-      </div>
+    <div className="relative rounded-2xl">
 
       {/* 카드 본체 */}
       <div
@@ -117,7 +90,6 @@ export default function FridgeItemCard({
             ? "border-2 border-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.12)]"
             : "border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
           }
-          ${isSwiped ? "-translate-x-20" : "translate-x-0"}
         `}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}

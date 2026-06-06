@@ -388,7 +388,7 @@ export default function ScanPage() {
 
         {/* ══ STEP: results ══ */}
         {step === "results" && (
-          <div className="flex-1 flex flex-col bg-gray-50 pt-28 pb-36 overflow-y-auto">
+          <div className="flex-1 flex flex-col bg-[#F4F7EF] pt-28 pb-36 overflow-y-auto">
             <div className="px-4">
               <p className="text-[20px] font-extrabold text-gray-900">
                 {matched.length + unmatchedForms.length}개 재료가 감지됐어요
