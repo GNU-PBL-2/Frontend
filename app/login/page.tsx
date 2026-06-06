@@ -6,7 +6,7 @@ export default function LoginPage() {
     `&response_type=code`;
 
   return (
-    <main className="min-h-screen bg-[#F4F7EF] text-[#111111]">
+    <main className="min-h-screen bg-white text-[#111111]">
       <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col justify-between bg-white px-6 py-10">
         <div className="w-full" />
 

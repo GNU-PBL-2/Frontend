@@ -377,8 +377,8 @@ export default function CartPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="flex min-h-screen justify-center bg-[#F4F7EF]">
-        <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen flex flex-col">
+      <div className="flex min-h-screen justify-center bg-white">
+        <div className="w-full max-w-sm bg-white min-h-screen flex flex-col">
 
           {/* ── 헤더 ── */}
           <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-4 shadow-[0_1px_0_#E6ECDF] shrink-0">

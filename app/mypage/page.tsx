@@ -309,8 +309,8 @@ export default function MyPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="flex min-h-screen justify-center bg-[#F4F7EF]">
-        <div className="w-full max-w-sm bg-[#F4F7EF] min-h-screen pb-28">
+      <div className="flex min-h-screen justify-center bg-white">
+        <div className="w-full max-w-sm bg-white min-h-screen pb-28">
 
           {/* 헤더 */}
           <div className="bg-white/[0.94] backdrop-blur-sm px-5 pt-10 pb-5 shadow-[0_1px_0_#E6ECDF]">

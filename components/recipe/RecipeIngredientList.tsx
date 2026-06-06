@@ -17,7 +17,8 @@ export default function RecipeIngredientList({
   ingredients,
   onOpenCartModal,
 }: RecipeIngredientListProps) {
-  const missingCount = ingredients.filter((i) => i.fridgeStatus === "NONE").length;
+  const safeIngredients = ingredients ?? [];
+  const missingCount = safeIngredients.filter((i) => i.fridgeStatus === "NONE").length;
 
   return (
     <div className="mb-7">
@@ -39,7 +40,7 @@ export default function RecipeIngredientList({
 
       {/* 재료 리스트 */}
       <div className="flex flex-col gap-1.5">
-        {ingredients.map((ing) => {
+        {safeIngredients.map((ing) => {
           const cfg = STATUS_CONFIG[ing.fridgeStatus] ?? STATUS_CONFIG.NONE;
           return (
             <div

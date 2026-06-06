@@ -237,7 +237,7 @@ export default function RecipePage() {
     .join(" · ");
 
   return (
-    <div className="min-h-screen flex justify-center" style={{ background: "#F4F7EF" }}>
+    <div className="min-h-screen flex justify-center" style={{ background: "#ffffff" }}>
       <div className="w-full max-w-sm min-h-screen">
 
         {/* 스티키 헤더 */}

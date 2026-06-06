@@ -103,7 +103,7 @@ export default function RecipeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
+      <div className="bg-white min-h-screen flex justify-center">
         <DetailSkeleton />
       </div>
     );
@@ -124,12 +124,12 @@ export default function RecipeDetailPage() {
     );
   }
 
-  const isCookable = recipe.ingredients
+  const isCookable = (recipe.ingredients ?? [])
     .filter((ing) => !ing.isSubstitutable)
     .every((ing) => ing.fridgeStatus !== "NONE");
 
   return (
-    <div className="bg-[#F4F7EF] min-h-screen flex justify-center">
+    <div className="bg-white min-h-screen flex justify-center">
       <div className="w-full max-w-sm relative">
 
         {/* 히어로 이미지 — sticky: 스크롤해도 고정, 콘텐츠 카드(z-10)가 위로 덮음 */}

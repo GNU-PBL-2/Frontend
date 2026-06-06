@@ -32,12 +32,13 @@ export default function RecipeCard({
 }: Props) {
   const [imgError, setImgError] = useState(false);
 
-  const { rate, total } = calcMatchRate(recipe.ingredients);
+  const ingredients = recipe.ingredients ?? [];
+  const { rate, total } = calcMatchRate(ingredients);
   const hasIngredientData = total > 0;
-  const shortage = getShortageIngredients(recipe.ingredients);
-  const owned = getOwnedIngredients(recipe.ingredients);
-  const isExpiring = hasExpiringIngredient(recipe.ingredients);
-  const firstExpiring = recipe.ingredients.find((i) => i.fridgeStatus === "EXPIRING");
+  const shortage = getShortageIngredients(ingredients);
+  const owned = getOwnedIngredients(ingredients);
+  const isExpiring = hasExpiringIngredient(ingredients);
+  const firstExpiring = ingredients.find((i) => i.fridgeStatus === "EXPIRING");
 
   // 부족 먼저, 보유 뒤, 최대 3개 노출
   const allChips = [...shortage, ...owned];
