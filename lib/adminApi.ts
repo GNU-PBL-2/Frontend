@@ -35,30 +35,43 @@ function toBackendPayload(data: RecipeFormData) {
 
 export async function importRecipeFromYoutube(youtubeUrl: string): Promise<number> {
   const token = getToken();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90_000);
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
-  try {
-    const res = await fetch(`${BASE_URL}/api/v1/admin/recipes/import`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ youtubeUrl }),
-      signal: controller.signal,
-    });
+  // 1단계: 분석 작업 제출
+  const submitRes = await fetch(`${BASE_URL}/api/v1/admin/recipes/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader },
+    body: JSON.stringify({ youtubeUrl }),
+  });
 
-    if (res.status === 401 || res.status === 403) throw new Error("관리자 권한이 필요합니다");
-    if (res.status === 409) throw new Error("이미 등록된 레시피입니다");
-    if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
+  if (submitRes.status === 401 || submitRes.status === 403) throw new Error("관리자 권한이 필요합니다");
+  if (submitRes.status === 400 || submitRes.status === 409) throw new Error("이미 등록된 레시피입니다");
+  if (!submitRes.ok) throw new Error(`서버 오류 (${submitRes.status})`);
 
-    const location = res.headers.get("Location") ?? "";
-    const id = parseInt(location.split("/").pop() ?? "0", 10);
-    return isNaN(id) ? 0 : id;
-  } finally {
-    clearTimeout(timeout);
+  const { jobId } = await submitRes.json();
+
+  // 2단계: 완료될 때까지 폴링 (최대 90초, 1.5초 간격)
+  const maxAttempts = 60;
+  const pollIntervalMs = 1500;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+
+    const statusRes = await fetch(
+      `${BASE_URL}/api/v1/admin/recipes/import/status/${jobId}`,
+      { headers: { ...authHeader } }
+    );
+
+    if (!statusRes.ok) throw new Error(`상태 조회 실패 (${statusRes.status})`);
+
+    const data = await statusRes.json();
+
+    if (data.status === "completed") return data.recipeId as number;
+    if (data.status === "failed") throw new Error(data.error ?? "레시피 분석에 실패했습니다");
+    // pending / processing → 계속 폴링
   }
+
+  throw new Error("레시피 분석 시간이 초과되었습니다 (최대 90초)");
 }
 
 export async function fetchAdminRecipes(params: {
