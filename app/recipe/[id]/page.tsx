@@ -9,6 +9,7 @@ import RecipeYoutubeThumbnail from "@/components/recipe/RecipeYoutubeThumbnail";
 import RecipeIngredientList from "@/components/recipe/RecipeIngredientList";
 import RecipeStepList from "@/components/recipe/RecipeStepList";
 import AddToCartModal from "@/components/recipe/AddToCartModal";
+import CookingMode from "@/components/recipe/CookingMode";
 import Toast from "@/components/Toast";
 import { useToast } from "@/hooks/useToast";
 
@@ -43,6 +44,7 @@ export default function RecipeDetailPage() {
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [imgError, setImgError] = useState(false);
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [isCookingMode, setIsCookingMode] = useState(false);
   const { toastMessage, toastVisible, showToast } = useToast();
 
   useEffect(() => {
@@ -198,14 +200,26 @@ export default function RecipeDetailPage() {
           <RecipeStepList steps={recipe.steps} />
         </div>
 
-        {/* 요리 완료 버튼 */}
+        {/* 요리 시작 버튼 */}
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 pb-6 pt-3 bg-white/90 backdrop-blur-sm border-t border-gray-100 z-20">
-          <button className="w-full py-3.5 rounded-xl bg-green-700 active:bg-green-800 text-white text-sm font-bold transition-colors shadow-md shadow-green-200">
-            요리 완료 →
+          <button
+            onClick={() => setIsCookingMode(true)}
+            disabled={recipe.steps.length === 0}
+            className="w-full py-3.5 rounded-xl bg-green-700 active:bg-green-800 text-white text-sm font-bold transition-colors shadow-md shadow-green-200 disabled:opacity-40"
+          >
+            요리 시작 →
           </button>
         </div>
 
         <Toast message={toastMessage} visible={toastVisible} />
+
+        {isCookingMode && (
+          <CookingMode
+            steps={recipe.steps}
+            title={recipe.title}
+            onClose={() => setIsCookingMode(false)}
+          />
+        )}
 
         <AddToCartModal
           isOpen={isCartModalOpen}
