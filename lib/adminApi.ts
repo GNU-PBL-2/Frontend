@@ -35,7 +35,7 @@ function toBackendPayload(data: RecipeFormData) {
 
 export async function importRecipeFromYoutube(youtubeUrl: string): Promise<number> {
   const token = getToken();
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
   // 1단계: 분석 작업 제출
   const submitRes = await fetch(`${BASE_URL}/api/v1/admin/recipes/import`, {
