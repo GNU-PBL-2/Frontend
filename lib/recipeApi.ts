@@ -1,5 +1,5 @@
 import { getToken } from "@/utils/auth";
-import { Recipe, RecipeListItem, RecipePage, RecipeFilterType } from "@/types/recipe";
+import { Recipe, RecipePage, RecipeFilterType } from "@/types/recipe";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -34,8 +34,10 @@ export async function fetchRecipes(params: {
   });
   if (!res.ok) throw new Error(`레시피 목록 로드 실패: ${res.status}`);
   const data: RecipePage = await res.json();
+  // Jackson이 record의 `boolean isFavorite`를 `favorite` 키로 직렬화할 수 있어 둘 다 수용
   data.content = (data.content ?? []).map((r) => ({
     ...r,
+    isFavorite: r.isFavorite ?? (r as { favorite?: boolean }).favorite ?? false,
     ingredients: r.ingredients ?? [],
   }));
   return data;
@@ -49,7 +51,12 @@ export async function fetchRecipeDetail(id: number): Promise<Recipe> {
   const data: Recipe = await res.json();
   return {
     ...data,
-    ingredients: data.ingredients ?? [],
+    // Jackson이 record의 `boolean isSubstitutable`을 `substitutable` 키로 직렬화할 수 있어 둘 다 수용
+    ingredients: (data.ingredients ?? []).map((ing) => ({
+      ...ing,
+      isSubstitutable:
+        ing.isSubstitutable ?? (ing as { substitutable?: boolean }).substitutable ?? false,
+    })),
     steps: data.steps ?? [],
   };
 }

@@ -6,6 +6,7 @@ import { Search, X, Sparkles, Flame, ChevronRight, SlidersHorizontal } from "luc
 import { fetchRecipes, addFavorite, removeFavorite } from "@/lib/recipeApi";
 import { fetchUserProfile } from "@/lib/dashboardApi";
 import { fetchFridgeList, FridgeItem } from "@/lib/fridgeApi";
+import { addCartItems } from "@/lib/cartApi";
 import { getToken } from "@/utils/auth";
 import { getUserIdFromToken } from "@/utils/auth";
 import { getDaysLeft } from "@/utils/expiryHelpers";
@@ -161,20 +162,21 @@ export default function RecipePage() {
   }, [recipes, activeSort]);
 
   // 무한 스크롤 — 센티널이 뷰포트에 들어오면 다음 페이지 로드
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  // 센티널은 조건부 렌더링이므로 ref 대신 state로 추적해 마운트 시점에 observer를 붙인다.
+  // recipes.length를 deps에 포함해, 로드 후에도 센티널이 화면에 남아 있으면 즉시 다음 페이지를 이어서 로드한다.
+  const [sentinelNode, setSentinelNode] = useState<HTMLDivElement | null>(null);
   const handleLoadMoreRef = useRef(handleLoadMore);
   handleLoadMoreRef.current = handleLoadMore;
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (!sentinelNode) return;
     const observer = new IntersectionObserver(
       (entries) => { if (entries[0].isIntersecting) handleLoadMoreRef.current(); },
       { threshold: 0 }
     );
-    observer.observe(sentinel);
+    observer.observe(sentinelNode);
     return () => observer.disconnect();
-  }, []);
+  }, [sentinelNode, recipes.length]);
 
   async function handleToggleFavorite(id: number) {
     const wasFavorite = favoriteIds.has(id);
@@ -182,7 +184,8 @@ export default function RecipePage() {
 
     setFavoriteIds((prev) => {
       const next = new Set(prev);
-      wasFavorite ? next.delete(id) : next.add(id);
+      if (wasFavorite) next.delete(id);
+      else next.add(id);
       return next;
     });
 
@@ -200,7 +203,8 @@ export default function RecipePage() {
     } catch {
       setFavoriteIds((prev) => {
         const next = new Set(prev);
-        wasFavorite ? next.add(id) : next.delete(id);
+        if (wasFavorite) next.add(id);
+        else next.delete(id);
         return next;
       });
       showToast("즐겨찾기 변경에 실패했어요");
@@ -212,9 +216,15 @@ export default function RecipePage() {
     router.push(`/recipe/${recipe.id}?favorite=${isFav}`);
   }
 
-  function handleAddToCart(ingredient: IngredientSummary) {
-    // Step 6에서 cart API 연동 예정 — 현재는 토스트만 표시
-    showToast(`${ingredient.name}을/를 장바구니에 추가했어요`);
+  async function handleAddToCart(ingredient: IngredientSummary) {
+    try {
+      await addCartItems([
+        { ingredientId: ingredient.ingredientId, name: ingredient.name, quantity: 1 },
+      ]);
+      showToast(`${ingredient.name}을/를 장바구니에 추가했어요`);
+    } catch {
+      showToast("장바구니 추가에 실패했어요");
+    }
   }
 
   const prefSummary = [
@@ -450,7 +460,7 @@ export default function RecipePage() {
 
               {/* 무한 스크롤 센티널 */}
               {!isLast && (
-                <div ref={sentinelRef} className="py-4 flex justify-center">
+                <div ref={setSentinelNode} className="py-4 flex justify-center">
                   {isLoadingMore && (
                     <span className="w-5 h-5 border-2 border-[#1AA64E] border-t-transparent rounded-full animate-spin" />
                   )}

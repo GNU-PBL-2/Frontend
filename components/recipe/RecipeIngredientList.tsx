@@ -1,6 +1,8 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { RecipeIngredient } from "@/types/recipe";
+import { openShoppingSearch } from "@/utils/shopping";
 
 type RecipeIngredientListProps = {
   ingredients: RecipeIngredient[];
@@ -42,15 +44,14 @@ export default function RecipeIngredientList({
       <div className="flex flex-col gap-1.5">
         {safeIngredients.map((ing) => {
           const cfg = STATUS_CONFIG[ing.fridgeStatus] ?? STATUS_CONFIG.NONE;
-          return (
-            <div
-              key={ing.ingredientId}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${cfg.bg} transition-colors`}
-            >
+          const isMissing = ing.fridgeStatus === "NONE";
+
+          const content = (
+            <>
               {/* 재료명 + 수량 */}
               <div className="flex items-center gap-2.5">
                 <span className={`text-sm font-bold ${cfg.text}`}>{cfg.icon}</span>
-                <span className={`text-sm font-medium ${ing.fridgeStatus === "NONE" ? "text-gray-400" : "text-gray-800"}`}>
+                <span className={`text-sm font-medium ${isMissing ? "text-gray-400" : "text-gray-800"}`}>
                   {ing.name}
                 </span>
                 <span className="text-xs text-gray-400">
@@ -61,10 +62,43 @@ export default function RecipeIngredientList({
                 )}
               </div>
 
-              {/* 상태 칩 */}
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.text}`}>
-                {cfg.label}
-              </span>
+              {/* 상태 칩 — 없는 재료는 구매 링크로 표시 */}
+              {isMissing ? (
+                <span
+                  className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: "#FBEDDB", color: "#B5631A" }}
+                >
+                  구매하기
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </span>
+              ) : (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.text}`}>
+                  {cfg.label}
+                </span>
+              )}
+            </>
+          );
+
+          // 없는 재료: 클릭 시 온라인 쇼핑몰 검색으로 이동
+          if (isMissing) {
+            return (
+              <button
+                key={ing.ingredientId}
+                onClick={() => openShoppingSearch(ing.name)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${cfg.bg} transition-colors active:bg-gray-100 text-left`}
+                aria-label={`${ing.name} 온라인 쇼핑몰에서 구매하기`}
+              >
+                {content}
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={ing.ingredientId}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${cfg.bg} transition-colors`}
+            >
+              {content}
             </div>
           );
         })}
