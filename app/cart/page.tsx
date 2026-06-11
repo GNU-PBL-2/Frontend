@@ -2,7 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
-import { ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator, Trash2, X } from "lucide-react";
+import {
+  ShoppingCart, Search, ArrowLeft, Plus, Minus, Refrigerator,
+  Trash2, X, ExternalLink, CheckSquare, Square,
+} from "lucide-react";
 import {
   CartItem,
   fetchCartItems,
@@ -13,6 +16,7 @@ import {
 } from "@/lib/cartApi";
 import { fetchMasterIngredients, createFridgeItem, type MasterIngredient } from "@/lib/fridgeApi";
 import { getUserIdFromToken } from "@/utils/auth";
+import { openShoppingSearch } from "@/utils/shopping";
 import { useToast } from "@/hooks/useToast";
 import Toast from "@/components/Toast";
 
@@ -20,11 +24,6 @@ const STYLES = `
   @keyframes item-in {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes check-pop {
-    0%   { transform: scale(1); }
-    40%  { transform: scale(1.25); }
-    100% { transform: scale(1); }
   }
   @keyframes view-in {
     from { opacity: 0; transform: translateX(18px); }
@@ -39,26 +38,22 @@ const STYLES = `
   .anim-fade-in  { animation: fade-in 0.2s ease both; }
 `;
 
-// 드래프트 아이템 (add 뷰 전용, 아직 백엔드에 저장 안 된 임시 항목)
-type DraftItem = {
-  tempId: number;
-  name: string;
-  quantity: number;
-};
-
+type DraftItem = { tempId: number; name: string; quantity: number };
 type CartView = "cart" | "add";
 
-// ── 스와이프 삭제 가능한 장바구니 카드 ───────────────────────────
+// ── 장바구니 카드 ────────────────────────────────────────────────
 function CartItemCard({
   item,
   index,
   onToggle,
   onQuantityChange,
+  onDelete,
 }: {
   item: CartItem;
   index: number;
   onToggle: (id: number, checked: boolean) => void;
   onQuantityChange: (id: number, newQty: number) => void;
+  onDelete: (id: number) => void;
 }) {
   const [checkAnim, setCheckAnim] = useState(false);
 
@@ -74,15 +69,15 @@ function CartItemCard({
       style={{ animationDelay: `${index * 45}ms` }}
     >
       <div
-        className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all duration-200
-          ${item.isChecked
+        className={`flex items-center gap-2.5 px-3.5 py-3 rounded-2xl border transition-all duration-200 ${
+          item.isChecked
             ? "bg-gray-50 border-gray-100"
             : "bg-white border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
-          }
-        `}
-        onClick={handleToggle}
+        }`}
       >
-        <div
+        {/* 체크박스 */}
+        <button
+          onClick={handleToggle}
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200
             [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)]
             ${checkAnim ? "scale-125" : "scale-100"}
@@ -94,18 +89,34 @@ function CartItemCard({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
+        </button>
+
+        {/* 이름 + 쇼핑 링크 */}
+        <div className="flex-1 flex items-center gap-1 min-w-0">
+          <p
+            className={`text-[14px] font-semibold truncate transition-colors duration-200 ${
+              item.isChecked ? "text-gray-400 line-through" : "text-gray-900"
+            }`}
+          >
+            {item.name}
+          </p>
+          {item.unit && (
+            <span className="text-[11px] text-gray-400 shrink-0">{item.unit}</span>
+          )}
+          {/* 미구매 아이템: 온라인 구매 링크 */}
+          {!item.isChecked && (
+            <button
+              onClick={() => openShoppingSearch(item.name)}
+              className="shrink-0 ml-0.5 text-gray-300 active:text-blue-400 transition-colors"
+              aria-label={`${item.name} 온라인에서 구매`}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <p className={`flex-1 text-[15px] font-semibold truncate transition-colors duration-200
-          ${item.isChecked ? "text-gray-400 line-through" : "text-gray-900"}`}
-        >
-          {item.name}
-          {item.unit && (
-            <span className="ml-1 text-xs text-gray-400 font-normal">{item.unit}</span>
-          )}
-        </p>
-
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        {/* 수량 컨트롤 */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
             className="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center
@@ -113,7 +124,7 @@ function CartItemCard({
           >
             <Minus className="w-3 h-3" />
           </button>
-          <span className="text-[14px] font-bold text-gray-800 w-8 text-center">
+          <span className="text-[14px] font-bold text-gray-800 w-6 text-center">
             {item.quantity}
           </span>
           <button
@@ -124,6 +135,16 @@ function CartItemCard({
             <Plus className="w-3 h-3" />
           </button>
         </div>
+
+        {/* 개별 삭제 */}
+        <button
+          onClick={() => onDelete(item.cartItemId)}
+          className="shrink-0 w-7 h-7 rounded-full bg-red-50 flex items-center justify-center
+            active:bg-red-100 active:scale-90 transition-all duration-100 text-red-400"
+          aria-label={`${item.name} 삭제`}
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -181,13 +202,12 @@ export default function CartPage() {
   const [addingToFridge, setAddingToFridge] = useState(false);
   const { toastMessage, toastVisible, showToast } = useToast();
 
-  // 수량 변경 debounce용 타이머
   const quantityTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   const checkedItems = items.filter((i) => i.isChecked);
   const checkedCount = checkedItems.length;
+  const allChecked = items.length > 0 && items.every((i) => i.isChecked);
 
-  // 마운트 시 백엔드에서 장바구니 로드
   const loadCart = useCallback(async () => {
     setIsLoadingCart(true);
     try {
@@ -198,7 +218,7 @@ export default function CartPage() {
     } finally {
       setIsLoadingCart(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     loadCart();
@@ -208,19 +228,19 @@ export default function CartPage() {
   // ── cart 뷰 핸들러 ──
 
   async function handleToggle(cartItemId: number, isChecked: boolean) {
-    // 낙관적 업데이트
-    setItems((prev) =>
-      prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked } : i))
-    );
+    setItems((prev) => prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked } : i)));
     try {
       await updateCartItem(cartItemId, { isChecked });
     } catch {
-      // 실패 시 롤백
-      setItems((prev) =>
-        prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked: !isChecked } : i))
-      );
+      setItems((prev) => prev.map((i) => (i.cartItemId === cartItemId ? { ...i, isChecked: !isChecked } : i)));
       showToast("상태 변경에 실패했어요");
     }
+  }
+
+  async function handleToggleAll() {
+    const target = !allChecked;
+    setItems((prev) => prev.map((i) => ({ ...i, isChecked: target })));
+    await Promise.allSettled(items.map((i) => updateCartItem(i.cartItemId, { isChecked: target })));
   }
 
   function handleQuantityChange(cartItemId: number, newQty: number) {
@@ -228,11 +248,7 @@ export default function CartPage() {
       handleDelete(cartItemId);
       return;
     }
-    // 낙관적 업데이트
-    setItems((prev) =>
-      prev.map((i) => (i.cartItemId === cartItemId ? { ...i, quantity: newQty } : i))
-    );
-    // debounce: 500ms 후 API 호출
+    setItems((prev) => prev.map((i) => (i.cartItemId === cartItemId ? { ...i, quantity: newQty } : i)));
     clearTimeout(quantityTimers.current[cartItemId]);
     quantityTimers.current[cartItemId] = setTimeout(async () => {
       try {
@@ -287,12 +303,8 @@ export default function CartPage() {
 
     await Promise.allSettled(
       checkedItems.map(async (cartItem) => {
-        // ingredientId가 있으면 바로 사용, 없으면 이름으로 마스터 매칭
-        const ingredientId =
-          cartItem.ingredientId ?? nameToIngredient.get(cartItem.name)?.ingredientId;
-
+        const ingredientId = cartItem.ingredientId ?? nameToIngredient.get(cartItem.name)?.ingredientId;
         if (!ingredientId) { missing.push(cartItem.name); return; }
-
         await createFridgeItem({
           memberId,
           ingredientId,
@@ -305,9 +317,8 @@ export default function CartPage() {
     );
 
     if (succeeded.length > 0) {
-      const ids = succeeded;
-      setItems((prev) => prev.filter((i) => !ids.includes(i.cartItemId)));
-      await deleteCartItems(ids).catch(() => {});
+      setItems((prev) => prev.filter((i) => !succeeded.includes(i.cartItemId)));
+      await deleteCartItems(succeeded).catch(() => {});
       showToast(`${succeeded.length}개를 냉장고에 추가했어요`);
     }
     if (missing.length > 0) {
@@ -318,19 +329,29 @@ export default function CartPage() {
 
   // ── add 뷰 핸들러 ──
 
-  function handleAddDraftItem() {
-    const name = searchKeyword.trim();
-    if (!name) return;
+  // 마스터 재료 자동완성: 2글자 이상 입력 시 최대 8개 추천
+  const suggestions: MasterIngredient[] =
+    searchKeyword.trim().length >= 1
+      ? masterIngredients
+          .filter((m) => m.name.includes(searchKeyword.trim()))
+          .slice(0, 8)
+      : [];
+
+  function addToDraft(name: string) {
     setDraftItems((prev) => {
       const existing = prev.find((i) => i.name === name);
       if (existing) {
-        return prev.map((i) =>
-          i.name === name ? { ...i, quantity: i.quantity + 1 } : i
-        );
+        return prev.map((i) => (i.name === name ? { ...i, quantity: i.quantity + 1 } : i));
       }
       return [...prev, { tempId: Date.now(), name, quantity: 1 }];
     });
     setSearchKeyword("");
+  }
+
+  function handleAddDraftItem() {
+    const name = searchKeyword.trim();
+    if (!name) return;
+    addToDraft(name);
   }
 
   function handleDraftQuantityChange(tempId: number, delta: number) {
@@ -349,13 +370,9 @@ export default function CartPage() {
         const added = await addCartItems(
           draftItems.map((d) => ({ name: d.name, quantity: d.quantity }))
         );
-        // 기존 items와 병합: 같은 이름이면 백엔드가 수량을 합산했으므로 교체
         setItems((prev) => {
           const updatedNames = new Set(added.map((a) => a.name));
-          return [
-            ...prev.filter((i) => !updatedNames.has(i.name)),
-            ...added,
-          ];
+          return [...prev.filter((i) => !updatedNames.has(i.name)), ...added];
         });
         showToast(`${draftItems.length}개 재료를 추가했어요`);
       } catch {
@@ -386,8 +403,7 @@ export default function CartPage() {
               <div className="flex items-center gap-3 anim-view-in">
                 <button
                   onClick={() => setView("cart")}
-                  className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center
-                    active:scale-90 transition-transform duration-150"
+                  className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center active:scale-90 transition-transform duration-150"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
@@ -407,11 +423,12 @@ export default function CartPage() {
           </div>
 
           {/* ── 본문 ── */}
-          <div className="flex-1 overflow-y-auto px-4 pt-5 pb-4">
+          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
 
             {/* === ADD 뷰 === */}
             {view === "add" && (
               <div className="space-y-4 anim-view-in">
+                {/* 검색 입력 */}
                 <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3
                   shadow-[0_2px_12px_rgba(0,0,0,0.06)] focus-within:border-green-500 transition-colors duration-200">
                   <Search className="w-4 h-4 text-gray-400 shrink-0" />
@@ -431,9 +448,43 @@ export default function CartPage() {
                   )}
                 </div>
 
+                {/* 자동완성 추천 */}
+                {suggestions.length > 0 && (
+                  <div className="anim-fade-in">
+                    <p className="text-[11px] font-semibold text-gray-400 px-1 mb-2">추천 재료</p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((m) => (
+                        <button
+                          key={m.ingredientId}
+                          onClick={() => addToDraft(m.name)}
+                          className="px-3 py-1.5 bg-green-50 border border-green-200 text-green-700
+                            rounded-full text-[13px] font-semibold active:bg-green-100 active:scale-95
+                            transition-all duration-100"
+                        >
+                          {m.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 직접 추가 버튼 — 추천 목록에 없는 재료명 입력 시 */}
+                {searchKeyword.trim() && suggestions.every((s) => s.name !== searchKeyword.trim()) && (
+                  <button
+                    onClick={handleAddDraftItem}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl
+                      border-2 border-dashed border-amber-300 bg-amber-50 text-amber-700
+                      text-[14px] font-semibold active:scale-[0.98] transition-transform duration-100 anim-fade-in"
+                  >
+                    <Plus className="w-4 h-4" />
+                    &quot;{searchKeyword.trim()}&quot; 직접 추가
+                  </button>
+                )}
+
+                {/* 추가할 재료 목록 */}
                 {draftItems.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-[12px] font-semibold text-gray-400 px-1">추가할 재료 목록</p>
+                    <p className="text-[12px] font-semibold text-gray-400 px-1">추가할 재료 목록 ({draftItems.length})</p>
                     {draftItems.map((item, i) => (
                       <DraftItemCard
                         key={item.tempId}
@@ -445,12 +496,15 @@ export default function CartPage() {
                   </div>
                 )}
 
+                {/* 빈 상태 */}
                 {draftItems.length === 0 && !searchKeyword && (
                   <div className="flex flex-col items-center justify-center py-16 gap-3 anim-fade-in">
                     <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center">
                       <ShoppingCart className="w-8 h-8 text-amber-500" strokeWidth={1.5} />
                     </div>
-                    <p className="text-[14px] text-gray-400 font-medium">재료명을 검색해서 추가하세요</p>
+                    <p className="text-[14px] text-gray-400 font-medium text-center">
+                      재료명을 검색하거나<br />직접 입력하세요
+                    </p>
                   </div>
                 )}
               </div>
@@ -486,21 +540,28 @@ export default function CartPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 anim-view-in">
-                    {checkedCount > 0 && (
-                      <div className="flex items-center justify-between px-1 anim-fade-in">
+                    {/* 전체 선택 / 선택 정보 바 */}
+                    <div className="flex items-center justify-between px-1">
+                      <button
+                        onClick={handleToggleAll}
+                        className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 active:text-green-700 transition-colors"
+                      >
+                        {allChecked
+                          ? <CheckSquare className="w-4 h-4 text-green-600" />
+                          : <Square className="w-4 h-4" />
+                        }
+                        전체 선택
+                      </button>
+                      {checkedCount > 0 ? (
                         <span className="text-[13px] font-semibold text-green-700">
                           {checkedCount}개 선택됨
                         </span>
-                        <button
-                          onClick={() =>
-                            checkedItems.forEach((i) => handleToggle(i.cartItemId, false))
-                          }
-                          className="text-[12px] text-gray-400 active:text-gray-700"
-                        >
-                          선택 해제
-                        </button>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-[12px] text-gray-400">
+                          항목을 체크하면 냉장고에 담을 수 있어요
+                        </span>
+                      )}
+                    </div>
 
                     {items.map((item, i) => (
                       <CartItemCard
@@ -509,6 +570,7 @@ export default function CartPage() {
                         index={i}
                         onToggle={handleToggle}
                         onQuantityChange={handleQuantityChange}
+                        onDelete={handleDelete}
                       />
                     ))}
                   </div>
@@ -522,21 +584,14 @@ export default function CartPage() {
             {view === "add" ? (
               <>
                 <button
-                  onClick={handleAddDraftItem}
-                  disabled={!searchKeyword.trim()}
-                  className="w-full py-3.5 rounded-2xl border-2 border-amber-400 bg-amber-50 text-amber-700
-                    text-[14px] font-bold transition-all duration-150 active:scale-[0.97]
+                  onClick={handleCompleteAdd}
+                  disabled={draftItems.length === 0}
+                  className="w-full py-3.5 rounded-2xl bg-green-600 text-white text-[14px] font-bold
+                    active:scale-[0.97] transition-all duration-150
+                    shadow-[0_4px_14px_rgba(22,163,74,0.3)]
                     disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  장바구니에 담기
-                </button>
-                <button
-                  onClick={handleCompleteAdd}
-                  className="w-full py-3.5 rounded-2xl bg-green-600 text-white text-[14px] font-bold
-                    active:scale-[0.97] transition-transform duration-150
-                    shadow-[0_4px_14px_rgba(22,163,74,0.3)]"
-                >
-                  완료
+                  {draftItems.length > 0 ? `${draftItems.length}개 장바구니에 추가` : "재료를 선택하세요"}
                 </button>
               </>
             ) : checkedCount > 0 ? (
@@ -550,16 +605,15 @@ export default function CartPage() {
                     shadow-[0_4px_14px_rgba(22,163,74,0.3)] disabled:opacity-60"
                 >
                   <Refrigerator className="w-4 h-4" />
-                  {addingToFridge ? "추가 중..." : "냉장고에 추가"}
+                  {addingToFridge ? "추가 중..." : `냉장고에 담기 (${checkedCount})`}
                 </button>
                 <button
                   onClick={handleDeleteChecked}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-3.5 rounded-2xl
+                  className="flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl
                     bg-white border border-gray-200 text-red-500 text-[13px] font-bold
                     active:scale-[0.97] transition-transform duration-150 shadow-sm"
                 >
                   <Trash2 className="w-4 h-4" />
-                  삭제
                 </button>
               </div>
             ) : (
